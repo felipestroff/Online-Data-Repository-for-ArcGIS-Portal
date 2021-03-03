@@ -14,7 +14,8 @@ new Vue({
             start: -1
         } ,
         source: null,
-        searchInput: ''
+        searchInput: '',
+        description: ''
     },
     created() {
         console.log('Vue created !');
@@ -107,12 +108,21 @@ new Vue({
             app.message = 'Processando download';
 
             const returnGeometry = format !== 'csv' ? true : false;
-            const response = await app.queryLayer(url, returnGeometry);
+            const response = await app.queryLayer(url, true);
             console.log('Layer query results', response);
 
             if (response.features.length) {
                 if (format === 'csv') {
                     app.layer2CSV(response, title);
+                }
+                else if (format === 'geojson') {
+                    app.layer2GeoJSON(response, title);
+                }
+                else if (format === 'shp') {
+                    app.layer2Shapefile(response, title);
+                }
+                else if (format === 'kml') {
+                    app.layer2KML(response, title);
                 }
             }
         },
@@ -132,9 +142,35 @@ new Vue({
                 });
             });
 
-            sheetContent = `data:text/csv;charset=utf-8,%EF%BB%BF ${encodeURIComponent(sheetContent)}`;
+            sheetContent = `data:text/csv;charset=utf-8,%EF%BB%BF ${encodeURIComponent(JSON.stringify(sheetContent))}`;
 
             app.createFileLink(layerName, sheetContent, '.csv');
+        },
+        layer2GeoJSON: function (data, layerName) {
+            let app = this;
+            
+            const featureCollection = {
+                type: 'FeatureCollection',
+                features: data.features.map(f => Terraformer.ArcGIS.parse(f))
+            },
+            geojsonContent = `data:application/geo+json;charset=utf-8,%EF%BB%BF ${encodeURIComponent(JSON.stringify(featureCollection))}`;
+
+            app.createFileLink(layerName, geojsonContent, '.geojson');
+        },
+        layer2Shapefile: function (data, layerName) {
+
+        },
+        layer2KML: function (data, layerName) {
+            let app = this;
+
+            const featureCollection = {
+                type: 'FeatureCollection',
+                features: data.features.map(f => Terraformer.ArcGIS.parse(f))
+            },
+            geojsonContent = `data:application/geo+json;charset=utf-8,%EF%BB%BF ${encodeURIComponent(JSON.stringify(featureCollection))}`,
+            kml = tokml(geojsonContent);
+
+            app.createFileLink(layerName, kml, '.kml');
         },
         createFileLink: function (name, content, ext) {
             let app = this,
@@ -173,6 +209,22 @@ new Vue({
                     .catch(app.handleException);
                 });
             });
+        },
+        expand: function (e) {
+            let app = this,
+                originalText = e.target.dataset.original,
+                expanded = e.target.dataset.expanded;
+
+            if (expanded == 'false') {
+                e.target.innerText = originalText;
+                e.target.dataset.expanded = true;
+                e.target.title = 'Clique para recolher';
+            }
+            else {
+                e.target.innerText = app.limitString(originalText, 300);
+                e.target.dataset.expanded = false;
+                e.target.title = 'Clique para expandir';
+            }
         },
         // Remove HTML tags from string
         stripHtml: function (html) {

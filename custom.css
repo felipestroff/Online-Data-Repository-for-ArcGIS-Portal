@@ -19,3 +19,7 @@
 .custom-item-title {
     color: #5F8B3F;
 }
+
+.custom-item-text {
+    cursor: pointer;
+}
