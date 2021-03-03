@@ -7,7 +7,7 @@ new Vue({
             url: 'https://sisdia.df.gov.br/portal'
         },
         params: {
-            query: 'orgid:0123456789ABCDEF -type:"Code Attachment" -type:"Featured Items" -type:"Symbol Set" -type:"Color Set" -type:"Windows Viewer Add In" -type:"Windows Viewer Configuration" -type:"Map Area" -typekeywords:"MapAreaPackage" -owner:"esri_apps" -owner:"esri" -type:"Layer" -type: "Map Document" -type:"Map Package" -type:"Basemap Package" -type:"Mobile Basemap Package" -type:"Mobile Map Package" -type:"ArcPad Package" -type:"Project Package" -type:"Project Template" -type:"Desktop Style" -type:"Pro Map" -type:"Layout" -type:"Explorer Map" -type:"Globe Document" -type:"Scene Document" -type:"Published Map" -type:"Map Template" -type:"Windows Mobile Package" -type:"Layer Package" -type:"Explorer Layer" -type:"Geoprocessing Package" -type:"Desktop Application Template" -type:"Code Sample" -type:"Geoprocessing Package" -type:"Geoprocessing Sample" -type:"Locator Package" -type:"Workflow Manager Package" -type:"Windows Mobile Package" -type:"Explorer Add In" -type:"Desktop Add In" -type:"File Geodatabase" -type:"Feature Collection Template" -type:"Map Area" -typekeywords:"MapAreaPackage"',
+            query: '(SISDIA)',
             //sortField: 'modified',
             sortOrder: 'desc',
             num: 20,
@@ -67,10 +67,7 @@ new Vue({
         
                     portal.queryItems(app.params).then(app.createGallery);
                 })
-                .catch(function (e) {
-                    console.error(e);
-                    app.loading = false;
-                });
+                .catch(app.handleException);
             });
         },
         search: function (event) {
@@ -82,11 +79,11 @@ new Vue({
             app.params.start = -1;
 
             if (app.searchInput) {
-                app.params.query = `${app.searchInput} orgid:0123456789ABCDEF -type:"Code Attachment" -type:"Featured Items" -type:"Symbol Set" -type:"Color Set" -type:"Windows Viewer Add In" -type:"Windows Viewer Configuration" -type:"Map Area" -typekeywords:"MapAreaPackage" -owner:"esri_apps" -owner:"esri" -type:"Layer" -type: "Map Document" -type:"Map Package" -type:"Basemap Package" -type:"Mobile Basemap Package" -type:"Mobile Map Package" -type:"ArcPad Package" -type:"Project Package" -type:"Project Template" -type:"Desktop Style" -type:"Pro Map" -type:"Layout" -type:"Explorer Map" -type:"Globe Document" -type:"Scene Document" -type:"Published Map" -type:"Map Template" -type:"Windows Mobile Package" -type:"Layer Package" -type:"Explorer Layer" -type:"Geoprocessing Package" -type:"Desktop Application Template" -type:"Code Sample" -type:"Geoprocessing Package" -type:"Geoprocessing Sample" -type:"Locator Package" -type:"Workflow Manager Package" -type:"Windows Mobile Package" -type:"Explorer Add In" -type:"Desktop Add In" -type:"File Geodatabase" -type:"Feature Collection Template" -type:"Map Area" -typekeywords:"MapAreaPackage"`;
+                app.params.query = '(SISDIA)' + app.searchInput;
                 app.message = `Procurando por "${app.searchInput}".`;
             }
             else {
-                app.params.query = `orgid:0123456789ABCDEF -type:"Code Attachment" -type:"Featured Items" -type:"Symbol Set" -type:"Color Set" -type:"Windows Viewer Add In" -type:"Windows Viewer Configuration" -type:"Map Area" -typekeywords:"MapAreaPackage" -owner:"esri_apps" -owner:"esri" -type:"Layer" -type: "Map Document" -type:"Map Package" -type:"Basemap Package" -type:"Mobile Basemap Package" -type:"Mobile Map Package" -type:"ArcPad Package" -type:"Project Package" -type:"Project Template" -type:"Desktop Style" -type:"Pro Map" -type:"Layout" -type:"Explorer Map" -type:"Globe Document" -type:"Scene Document" -type:"Published Map" -type:"Map Template" -type:"Windows Mobile Package" -type:"Layer Package" -type:"Explorer Layer" -type:"Geoprocessing Package" -type:"Desktop Application Template" -type:"Code Sample" -type:"Geoprocessing Package" -type:"Geoprocessing Sample" -type:"Locator Package" -type:"Workflow Manager Package" -type:"Windows Mobile Package" -type:"Explorer Add In" -type:"Desktop Add In" -type:"File Geodatabase" -type:"Feature Collection Template" -type:"Map Area" -typekeywords:"MapAreaPackage"`;
+                app.params.query = '(SISDIA)';
                 app.message = 'Carregando';
             }
 
@@ -99,6 +96,83 @@ new Vue({
 
             app.source = data;
             app.loading = false;
+        },
+        download: async function (url, title, format) {
+            console.log('Layer url', url);
+            console.log('Download format', format);
+
+            let app = this;
+
+            app.loading = true;
+            app.message = 'Processando download';
+
+            const returnGeometry = format !== 'csv' ? true : false;
+            const response = await app.queryLayer(url, returnGeometry);
+            console.log('Layer query results', response);
+
+            if (response.features.length) {
+                if (format === 'csv') {
+                    app.layer2CSV(response, title);
+                }
+            }
+        },
+        layer2CSV: function (data, layerName) {
+            let app = this,
+                sheetContent = '';
+
+            data.fields.forEach(function (field) {
+                sheetContent += field.alias + ',';
+            });
+
+            data.features.forEach(function (feature) {
+                sheetContent += '\r\n';
+                
+                Object.values(feature.attributes).forEach(function (attr) {
+                    sheetContent += attr + ',';
+                });
+            });
+
+            sheetContent = `data:text/csv;charset=utf-8,%EF%BB%BF ${encodeURIComponent(sheetContent)}`;
+
+            app.createFileLink(layerName, sheetContent, '.csv');
+        },
+        createFileLink: function (name, content, ext) {
+            let app = this,
+            element = document.createElement('a');
+            element.setAttribute('href', content);
+            element.setAttribute('download', name + ext);
+            element.setAttribute('target', '_self');
+            element.style.display = 'none';
+
+            document.body.appendChild(element);
+          
+            element.click();
+          
+            document.body.removeChild(element);
+
+            app.loading = false;
+            app.message = 'Listando dados e informações disponíveis.';
+        },
+        queryLayer: function (layerUrl, geom) {
+            let app = this;
+
+            return new Promise(function(resolve, reject) {
+                require(['esri/tasks/QueryTask', 'esri/tasks/support/Query'], function(QueryTask, Query) {
+                    const queryTask = new QueryTask({
+                        url: layerUrl + '/0'
+                    });
+                
+                    const query = new Query();
+                    query.returnGeometry = geom;
+                    query.outFields = ['*'];
+                    query.where = '1=1';
+                
+                    queryTask.execute(query).then(function(results) {
+                        resolve(results);
+                    })
+                    .catch(app.handleException);
+                });
+            });
         },
         // Remove HTML tags from string
         stripHtml: function (html) {
@@ -119,6 +193,11 @@ new Vue({
             else {
                 return str;
             }
+        },
+        handleException: function (e) {
+            console.error(e);
+            this.loading = false;
+            this.message = 'Ocorreu um erro.';
         }
     }
 });
