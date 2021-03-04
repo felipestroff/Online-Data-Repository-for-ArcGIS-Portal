@@ -119,8 +119,8 @@ new Vue({
                 else if (format === 'shp') {
                     //app.layer2Shapefile(response, title);
                 }
-                else {
-                    //app.layer2KML(response, title);
+                else if (format === 'kml') {
+                    app.layer2KML(response, title);
                 }
             }
         },
@@ -128,13 +128,28 @@ new Vue({
             let app = this,
                 sheetContent = '';
 
+            // Append coordinates fields
+            sheetContent += 'latitude' + ',';
+            sheetContent += 'longitude' + ',';
+
+            // Header
             data.fields.forEach(function (field) {
                 sheetContent += field.alias + ',';
             });
 
+            // Content
             data.features.forEach(function (feature) {
+                // New row
                 sheetContent += '\r\n';
+
+                const latitude = feature.geometry.centroid.latitude,
+                    longitude = feature.geometry.centroid.latitude;
+
+                // Append coordinates attrs in cols
+                sheetContent += latitude + ',';
+                sheetContent += longitude + ',';
                 
+                // New col
                 Object.values(feature.attributes).forEach(function (attr) {
                     sheetContent += attr + ',';
                 });
@@ -145,23 +160,31 @@ new Vue({
             app.createFileLink(blob, layerName, '.csv');
         },
         layer2GeoJSON: function (data, layerName) {
-            let app = this;
-            
-            const featureCollection = {
+            const app = this,
+            featureCollection = {
                 type: 'FeatureCollection',
                 features: data.features.map(f => Terraformer.ArcGIS.parse(f))
             },
             blob = new Blob([JSON.stringify(featureCollection)], { type: 'application/geo+json;charset=utf-8;' });
-            
-            //geojsonContent = `data:application/geo+json;charset=utf-8,%EF%BB%BF ${encodeURIComponent(JSON.stringify(featureCollection))}`;
-
             app.createFileLink(blob, layerName, '.geojson');
         },
         layer2Shapefile: function (data, layerName) {
             // TODO
         },
         layer2KML: function (data, layerName) {
-            // TODO
+            const app = this,
+            featureCollection = {
+                type: 'FeatureCollection',
+                features: data.features.map(f => Terraformer.ArcGIS.parse(f))
+            },
+            // Uses custom lib: tokml.js
+            kml = tokml(featureCollection, {
+                documentName: layerName,
+                documentDescription: 'Repositório de Dados | SISDIA'
+            }),
+            blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+            app.createFileLink(blob, layerName, '.kml');
+
         },
         createFileLink: function (blob, filename, ext) {
             let app = this;
@@ -197,6 +220,7 @@ new Vue({
                 
                     const query = new Query();
                     query.returnGeometry = true;
+                    query.returnCentroid = true;
                     query.outFields = ['*'];
                     query.where = '1=1';
                     query.outSpatialReference = {'wkid' : 4326};
