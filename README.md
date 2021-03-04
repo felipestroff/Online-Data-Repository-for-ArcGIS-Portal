@@ -1,7 +1,5 @@
 # Repositório de Dados | SISDIA
 
-- - - - -
-
 # Core
 
 - https://getbootstrap.com
