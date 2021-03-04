@@ -17,7 +17,7 @@
             <span class="visually-hidden">Carregando...</span>
         </div>
 
-        <div class="container">
+        <div class="container pt-4">
             <!-- Search -->
             <form v-on:submit="search">
                 <div class="input-group mb-3">
@@ -44,7 +44,7 @@
             <!-- Search container -->
             <div v-if="items">
                 <div class="list-group list-group-flush">
-                    <div class="custom-list-group-item list-group-item list-group-item-action"
+                    <div class="list-group-item list-group-item-action pt-4 pb-4"
                         v-for="item in items">
                         
                         <div class="w-100 justify-content-between">
