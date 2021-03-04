@@ -10,7 +10,7 @@ new Vue({
             query: '(SISDIA)',
             //sortField: 'modified',
             sortOrder: 'desc',
-            num: 20,
+            num: 10,
             start: 1
         },
         source: null,
