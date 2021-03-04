@@ -81,9 +81,7 @@ new Vue({
                 .catch(app.handleException);
             });
         },
-        search: function (event) {
-            event.preventDefault();
-
+        search: function () {
             let app = this;
 
             app.loading = true;
