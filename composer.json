@@ -1,0 +1,21 @@
+{
+    "name": "sisdia/repositorio-de-dados",
+    "description": "",
+    "keywords": ["arcgis", "javascript", "vue.js"],
+    "license": "MIT",
+    "type": "project",
+    "homepage": "https://sisdia-repositorio-de-dados",
+    "readme": "./README.md",
+    "authors": [
+        {
+            "name": "Felipe Stroff",
+            "email": "stroff.felipe@gmail.com",
+            "homepage": "https://www.linkedin.com/in/felipestroff",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "stroff.felipe@gmail.com",
+        "chat": "https://api.whatsapp.com/send?phone=5551980392299"
+    }
+}
