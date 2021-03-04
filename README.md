@@ -13,6 +13,8 @@
 
 - https://github.com/Esri/terraformer-arcgis-parser
 - https://github.com/bryik/geojson-to-kml
+- https://github.com/Stuk/jszip
+- https://github.com/mirajanata/GeoShape.JS
 
 - - - - -
 

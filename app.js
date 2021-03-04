@@ -83,7 +83,7 @@ new Vue({
         },
         search: function (e) {
             e.preventDefault();
-            
+
             let app = this;
 
             app.loading = true;
@@ -153,7 +153,7 @@ new Vue({
                     app.layer2GeoJSON(response, title);
                 }
                 else if (format === 'shp') {
-                    //app.layer2Shapefile(response, title);
+                    app.layer2Shapefile(response, title);
                 }
                 else if (format === 'kml') {
                     app.layer2KML(response, title);
@@ -202,10 +202,19 @@ new Vue({
                 features: data.features.map(f => Terraformer.ArcGIS.parse(f))
             },
             blob = new Blob([JSON.stringify(featureCollection)], { type: 'application/geo+json;charset=utf-8;' });
+
             app.createFileLink(blob, layerName, '.geojson');
         },
         layer2Shapefile: function (data, layerName) {
-            // TODO
+            const app = this,
+            featureCollection = {
+                type: 'FeatureCollection',
+                features: data.features.map(f => Terraformer.ArcGIS.parse(f))
+            };
+            
+            GeoShape.transformAndDownload(featureCollection, layerName + '.zip');
+
+            app.loading = false;
         },
         layer2KML: function (data, layerName) {
             const app = this,
@@ -219,6 +228,7 @@ new Vue({
                 documentDescription: 'Repositório de Dados | SISDIA'
             }),
             blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+
             app.createFileLink(blob, layerName, '.kml');
 
         },
