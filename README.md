@@ -54,4 +54,4 @@ See more: https://developers.arcgis.com/rest/users-groups-and-items/search.htm
 
 - Add support to download shapefile layers
 - Add category and tags search
-- Paginate elements (current limited by 20 items)
+- Paginate elements (current limited by 10 items)
