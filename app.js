@@ -1,7 +1,7 @@
 new Vue({
     el: '#app',
     data: {
-        message: 'Carregando',
+        message: '',
         loading: false,
         portal: {
             url: 'https://sisdia.df.gov.br/portal'
@@ -11,18 +11,21 @@ new Vue({
             //sortField: 'modified',
             sortOrder: 'desc',
             num: 20,
-            start: -1
-        } ,
+            start: 1
+        },
         source: null,
+        items: [],
         searchInput: ''
     },
     created() {
         console.log('Vue created !');
+
+        this.start();
     },
     mounted: function () {
         console.log('Vue mounted !');
 
-        this.start();
+        this.scroll();
     },
     beforeUpdate() {
         console.log('Vue updating...');
@@ -34,12 +37,20 @@ new Vue({
         source: function (data) {
             let app = this;
 
-            console.log(data);
+            app.params = data.queryParams;
+        },
+        items: function (data) {
+            let app = this;
 
-            app.params = data.nextQueryParams;
+            app.loading = false;
 
-            if (data.total) {
-                app.message = 'Listando dados e informações disponíveis.';
+            if (data.length) {
+                if (app.searchInput) {
+                    app.message = `Resultado da pesquisa por "${app.searchInput}".`;
+                }
+                else {
+                    app.message = 'Listando dados e informações disponíveis.';
+                }
             }
             else {
                 app.message = 'Nenhum resultado encontrado.'
@@ -76,10 +87,11 @@ new Vue({
             let app = this;
 
             app.loading = true;
-            app.params.start = -1;
+            app.params.start = 1;
+            app.items = [];
 
             if (app.searchInput) {
-                app.params.query = '(SISDIA)' + app.searchInput;
+                app.params.query = '(SISDIA) ' + app.searchInput;
                 app.message = `Procurando por "${app.searchInput}".`;
             }
             else {
@@ -95,7 +107,31 @@ new Vue({
             let app = this;
 
             app.source = data;
+            app.source.results.forEach(function (item) {
+                app.items.push(item);
+            });
+
             app.loading = false;
+        },
+        loadMore: function () {
+            let app = this;
+
+            console.log(`Adding ${app.params.num} more data results`);
+
+            app.loading = true;
+            app.params.start = app.source.queryParams.start + app.params.num;
+            app.portal.queryItems(app.params).then(app.createGallery);
+        },
+        scroll: function () {
+            const app = this;
+
+            window.onscroll = () => {
+                let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+
+                if (app.params.start <= app.source.total && bottomOfWindow) {
+                    app.loadMore();
+                }
+            };
         },
         download: async function (url, title, format) {
             console.log('Layer url', url);
