@@ -35,7 +35,10 @@
             <div class="d-flex justify-content-center">
                 {{ message }}
 
-                <span class="badge rounded-pill bg-secondary ms-2" v-show="source.total">{{ source.total }}</span>
+                <!-- Results count -->
+                <span class="badge rounded-pill bg-secondary ms-2" v-if="source && source.total && !loading">
+                    {{ source.total }}
+                </span>
             </div>
 
             <!-- Search container -->
