@@ -43,8 +43,8 @@
                         <div class="w-100 justify-content-between">
                             <h5 class="custom-item-title mb-1">{{ item.title }}</h5>
                             <small 
-                                v-bind:class="{ 'custom-item-text': item.description.length > 300 }"
-                                v-bind:title="item.description.length > 300 ? 'Clique para expandir' : ''"
+                                v-bind:class="{ 'custom-item-text': item.description && item.description.length > 300 }"
+                                v-bind:title="item.description && item.description.length > 300 ? 'Clique para expandir' : ''"
                                 :data-original="stripHtml(item.description)"
                                 data-expanded="false"
                                 v-on:click="expand">{{ limitString(stripHtml(item.description), 300) }}</small>
