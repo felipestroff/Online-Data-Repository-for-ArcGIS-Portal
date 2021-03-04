@@ -14,8 +14,7 @@ new Vue({
             start: -1
         } ,
         source: null,
-        searchInput: '',
-        description: ''
+        searchInput: ''
     },
     created() {
         console.log('Vue created !');
@@ -105,10 +104,9 @@ new Vue({
             let app = this;
 
             app.loading = true;
-            app.message = 'Processando download';
+            app.message = 'Processando download...';
 
-            const returnGeometry = format !== 'csv' ? true : false;
-            const response = await app.queryLayer(url, true);
+            const response = await app.queryLayer(url);
             console.log('Layer query results', response);
 
             if (response.features.length) {
@@ -119,10 +117,10 @@ new Vue({
                     app.layer2GeoJSON(response, title);
                 }
                 else if (format === 'shp') {
-                    app.layer2Shapefile(response, title);
+                    //app.layer2Shapefile(response, title);
                 }
-                else if (format === 'kml') {
-                    app.layer2KML(response, title);
+                else {
+                    //app.layer2KML(response, title);
                 }
             }
         },
@@ -142,9 +140,9 @@ new Vue({
                 });
             });
 
-            sheetContent = `data:text/csv;charset=utf-8,%EF%BB%BF ${encodeURIComponent(JSON.stringify(sheetContent))}`;
+            const blob = new Blob([sheetContent], { type: 'text/csv;charset=utf-8;' });
 
-            app.createFileLink(layerName, sheetContent, '.csv');
+            app.createFileLink(blob, layerName, '.csv');
         },
         layer2GeoJSON: function (data, layerName) {
             let app = this;
@@ -153,43 +151,42 @@ new Vue({
                 type: 'FeatureCollection',
                 features: data.features.map(f => Terraformer.ArcGIS.parse(f))
             },
-            geojsonContent = `data:application/geo+json;charset=utf-8,%EF%BB%BF ${encodeURIComponent(JSON.stringify(featureCollection))}`;
+            blob = new Blob([JSON.stringify(featureCollection)], { type: 'application/geo+json;charset=utf-8;' });
+            
+            //geojsonContent = `data:application/geo+json;charset=utf-8,%EF%BB%BF ${encodeURIComponent(JSON.stringify(featureCollection))}`;
 
-            app.createFileLink(layerName, geojsonContent, '.geojson');
+            app.createFileLink(blob, layerName, '.geojson');
         },
         layer2Shapefile: function (data, layerName) {
-
+            // TODO
         },
         layer2KML: function (data, layerName) {
+            // TODO
+        },
+        createFileLink: function (blob, filename, ext) {
             let app = this;
 
-            const featureCollection = {
-                type: 'FeatureCollection',
-                features: data.features.map(f => Terraformer.ArcGIS.parse(f))
-            },
-            geojsonContent = `data:application/geo+json;charset=utf-8,%EF%BB%BF ${encodeURIComponent(JSON.stringify(featureCollection))}`,
-            kml = tokml(geojsonContent);
+            // IE 10+
+            if (navigator.msSaveBlob) {
+                navigator.msSaveBlob(blob, filename);
+            }
+            // Browsers that support HTML5 download attribute
+            else {
+                const url = URL.createObjectURL(blob),
+                link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename + ext);
+                link.style.visibility = 'hidden';
 
-            app.createFileLink(layerName, kml, '.kml');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                app.loading = false;
+                app.message = 'Listando dados e informações disponíveis.';
+            }
         },
-        createFileLink: function (name, content, ext) {
-            let app = this,
-            element = document.createElement('a');
-            element.setAttribute('href', content);
-            element.setAttribute('download', name + ext);
-            element.setAttribute('target', '_self');
-            element.style.display = 'none';
-
-            document.body.appendChild(element);
-          
-            element.click();
-          
-            document.body.removeChild(element);
-
-            app.loading = false;
-            app.message = 'Listando dados e informações disponíveis.';
-        },
-        queryLayer: function (layerUrl, geom) {
+        queryLayer: function (layerUrl) {
             let app = this;
 
             return new Promise(function(resolve, reject) {
@@ -199,9 +196,10 @@ new Vue({
                     });
                 
                     const query = new Query();
-                    query.returnGeometry = geom;
+                    query.returnGeometry = true;
                     query.outFields = ['*'];
                     query.where = '1=1';
+                    query.outSpatialReference = {'wkid' : 4326};
                 
                     queryTask.execute(query).then(function(results) {
                         resolve(results);
@@ -211,7 +209,7 @@ new Vue({
             });
         },
         expand: function (e) {
-            let app = this,
+            const app = this,
                 originalText = e.target.dataset.original,
                 expanded = e.target.dataset.expanded;
 
