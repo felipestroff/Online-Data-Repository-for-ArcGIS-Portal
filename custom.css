@@ -18,3 +18,15 @@
 .custom-item-text {
     cursor: pointer;
 }
+
+.page-up {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1;
+    cursor: pointer;
+}
+
+.page-up > svg:hover {
+    fill: #5F8B3F;
+}

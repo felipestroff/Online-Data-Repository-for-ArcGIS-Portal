@@ -13,6 +13,8 @@ new Vue({
             num: 10,
             start: 1
         },
+        searchInput: '',
+        bottomOfPage: false,
         source: null,
         items: [],
         sortList: [
@@ -84,8 +86,7 @@ new Vue({
                     ]
                 }
             },
-        ],
-        searchInput: ''
+        ]
     },
     created() {
         console.log('Vue created !');
@@ -213,6 +214,14 @@ new Vue({
 
                 if (app.params.start <= app.source.total && bottomOfWindow) {
                     app.loadMore();
+                }
+
+                // Back to top (in pixels)?
+                if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                    app.bottomOfPage = true;
+                }
+                else {
+                    app.bottomOfPage = false;
                 }
             };
         },
@@ -376,6 +385,10 @@ new Vue({
                 e.target.dataset.expanded = false;
                 e.target.title = 'Clique para expandir';
             }
+        },
+        back2Top: function () {
+            document.body.scrollTop = 0; // For Safari
+            document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
         },
         // Remove HTML tags from string
         stripHtml: function (html) {
