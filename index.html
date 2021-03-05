@@ -32,13 +32,32 @@
                 </div>
             </form>
 
-            <div class="d-flex justify-content-center">
-                {{ message }}
+            <div class="d-flex">
+                <div class="flex-grow-1">
+                    {{ message }}
 
-                <!-- Results count -->
-                <span class="badge rounded-pill bg-secondary ms-2" v-if="source && source.total && !loading">
-                    {{ source.total }}
-                </span>
+                    <!-- Results count -->
+                    <span class="badge rounded-pill bg-secondary ms-2" v-if="source && source.total && !loading">
+                        {{ source.total }}
+                    </span>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn dropdown-toggle dropdown-toggle-split" id="dropdownMenuSort" data-bs-toggle="dropdown" aria-expanded="false" data-bs-reference="parent">
+                        <strong class="me-2">Ordenar por:</strong>
+                        <span id="sortingBy"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuSort">
+                        <li v-for="item in sortList" v-on:click="sortBy">
+                            <a class="dropdown-item" href="#" v-bind:data-sort="item.value" v-bind:data-field="item.field">
+                                {{ item.name }}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" v-bind:class="item.icon.class" viewBox="0 0 16 16">
+                                    <path v-for="path in item.icon.paths" v-bind:fill-rule="path.fill_rule" v-bind:d="path.d"/>
+                                </svg>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
             <!-- Search container -->

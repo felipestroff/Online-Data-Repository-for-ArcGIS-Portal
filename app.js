@@ -7,14 +7,84 @@ new Vue({
             url: 'https://sisdia.df.gov.br/portal'
         },
         params: {
-            query: '(SISDIA)',
-            //sortField: 'modified',
-            sortOrder: 'desc',
+            query: '',
+            sortField: '',
+            sortOrder: '',
             num: 10,
             start: 1
         },
         source: null,
         items: [],
+        sortList: [
+            {
+                value: 'asc',
+                name: 'ordem alfabética',
+                field: 'title',
+                icon: {
+                    class: 'bi bi-sort-alpha-down',
+                    paths: [
+                        {
+                            fill_rule: 'evenodd',
+                            d: 'M10.082 5.629L9.664 7H8.598l1.789-5.332h1.234L13.402 7h-1.12l-.419-1.371h-1.781zm1.57-.785L11 2.687h-.047l-.652 2.157h1.351z'
+                        },
+                        {
+                            fill_rule: '',
+                            d: 'M12.96 14H9.028v-.691l2.579-3.72v-.054H9.098v-.867h3.785v.691l-2.567 3.72v.054h2.645V14zM4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z'
+                        }
+                    ]
+                }
+            },
+            {
+                value: 'desc',
+                field: 'title',
+                name: 'ordem alfabética',
+                icon: {
+                    class: 'bi bi-sort-alpha-down-alt',
+                    paths: [
+                        {
+                            fill_rule: '',
+                            d: 'M12.96 7H9.028v-.691l2.579-3.72v-.054H9.098v-.867h3.785v.691l-2.567 3.72v.054h2.645V7z'
+                        },
+                        {
+                            fill_rule: 'evenodd',
+                            d: 'M10.082 12.629L9.664 14H8.598l1.789-5.332h1.234L13.402 14h-1.12l-.419-1.371h-1.781zm1.57-.785L11 9.688h-.047l-.652 2.156h1.351z'
+                        },
+                        {
+                            fill_rule: '',
+                            d: 'M4.5 2.5a.5.5 0 0 0-1 0v9.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L4.5 12.293V2.5z'
+                        }
+                    ]
+                }
+            },
+            {
+                value: 'desc',
+                field: 'modified',
+                name: 'data de modificação',
+                icon: {
+                    class: 'bi bi-sort-down',
+                    paths: [
+                        {
+                            fill_rule: '',
+                            d: 'M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z'
+                        },
+                    ]
+                }
+            },
+            {
+                value: 'asc',
+                field: 'modified',
+                name: 'data de modificação',
+                icon: {
+                    class: 'bi bi-sort-up',
+                    paths: [
+                        {
+                            fill_rule: '',
+                            d: 'M3.5 12.5a.5.5 0 0 1-1 0V3.707L1.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 3.707V12.5zm3.5-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z'
+                        },
+                    ]
+                }
+            },
+        ],
         searchInput: ''
     },
     created() {
@@ -41,8 +111,6 @@ new Vue({
         },
         items: function (data) {
             let app = this;
-
-            app.loading = false;
 
             if (data.length) {
                 if (app.searchInput) {
@@ -75,6 +143,7 @@ new Vue({
                     console.log('ArcGIS Portal:', portal);
 
                     app.portal = portal;
+                    app.params.query = `orgid:${app.portal.id} ((type:"Feature Service"))`;
         
                     portal.queryItems(app.params).then(app.createGallery);
                 })
@@ -91,11 +160,11 @@ new Vue({
             app.items = [];
 
             if (app.searchInput) {
-                app.params.query = '(SISDIA) ' + app.searchInput;
+                app.params.query = `${app.searchInput} orgid:${app.portal.id} ((type:"Feature Service"))`;
                 app.message = `Procurando por "${app.searchInput}".`;
             }
             else {
-                app.params.query = '(SISDIA)';
+                app.params.query = `orgid:${app.portal.id} ((type:"Feature Service"))`;
                 app.message = 'Carregando';
             }
 
@@ -112,6 +181,20 @@ new Vue({
             });
 
             app.loading = false;
+        },
+        sortBy: function (e) {
+            const sort = e.target.dataset.sort
+                field = e.target.dataset.field;
+
+            this.loading = true;
+
+            sortingBy.innerHTML = e.target.innerHTML;
+
+            this.params.sortField = field;
+            this.params.sortOrder = sort;
+            this.params.start = 1;
+            this.items = [];
+            this.portal.queryItems(this.params).then(this.createGallery);
         },
         loadMore: function () {
             let app = this;
