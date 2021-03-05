@@ -19,14 +19,21 @@
     cursor: pointer;
 }
 
-.page-up {
+.page-navigation {
     position: fixed;
     right: 20px;
-    bottom: 20px;
     z-index: 1;
     cursor: pointer;
 }
 
-.page-up > svg:hover {
-    fill: #5F8B3F;
+.page-navigation:hover {
+    color: #5F8B3F;
+}
+
+.page-up {
+    top: 20px;
+}
+
+.page-down {
+    bottom: 20px;
 }

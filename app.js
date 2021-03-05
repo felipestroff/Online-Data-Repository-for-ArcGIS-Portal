@@ -14,6 +14,7 @@ new Vue({
             start: 1
         },
         searchInput: '',
+        topOfPage: false,
         bottomOfPage: false,
         source: null,
         items: [],
@@ -206,25 +207,6 @@ new Vue({
             app.params.start = app.source.queryParams.start + app.params.num;
             app.portal.queryItems(app.params).then(app.createGallery);
         },
-        scroll: function () {
-            const app = this;
-
-            window.onscroll = () => {
-                let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
-
-                if (app.params.start <= app.source.total && bottomOfWindow) {
-                    app.loadMore();
-                }
-
-                // Back to top (in pixels)?
-                if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-                    app.bottomOfPage = true;
-                }
-                else {
-                    app.bottomOfPage = false;
-                }
-            };
-        },
         download: async function (url, title, format) {
             console.log('Layer url', url);
             console.log('Download format', format);
@@ -385,6 +367,36 @@ new Vue({
                 e.target.dataset.expanded = false;
                 e.target.title = 'Clique para expandir';
             }
+        },
+        scroll: function () {
+            const app = this;
+
+            window.onscroll = () => {
+                let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+
+                if (app.params.start <= app.source.total && bottomOfWindow) {
+                    app.loadMore();
+                }
+
+                // Back to top (in pixels)
+                if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                    app.bottomOfPage = true;
+                }
+                else {
+                    app.bottomOfPage = false;
+                }
+
+                // Goto bottom (in pixels)
+                if (!bottomOfWindow && (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20)) {
+                    app.topOfPage = true;
+                }
+                else {
+                    app.topOfPage = false;
+                }
+            };
+        },
+        gotoBottom: function () {
+            window.scrollTo(0, document.body.scrollHeight);
         },
         back2Top: function () {
             document.body.scrollTop = 0; // For Safari
