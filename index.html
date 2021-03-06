@@ -48,8 +48,9 @@
                         <span id="sortingBy"></span>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuSort">
-                        <li v-for="item in sortList" v-on:click="sortBy">
-                            <a class="dropdown-item" href="#" v-bind:data-sort="item.value" v-bind:data-field="item.field">
+                        <li v-for="item in sortList">
+                            <a v-on:click="sortBy" v-bind:data-sort="item.value" v-bind:data-field="item.field" class="dropdown-item" href="#"
+                                v-bind:class="{ 'active': params.sortOrder === item.value  && params.sortField === item.field }">
                                 {{ item.name }}
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" v-bind:class="item.icon.class" viewBox="0 0 16 16">
                                     <path v-for="path in item.icon.paths" v-bind:fill-rule="path.fill_rule" v-bind:d="path.d"/>

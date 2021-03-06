@@ -189,10 +189,18 @@ new Vue({
 
             this.loading = true;
 
-            sortingBy.innerHTML = e.target.innerHTML;
-
-            this.params.sortField = field;
-            this.params.sortOrder = sort;
+            // Reset sorting
+            if (e.target.classList.contains('active')) {
+                sortingBy.innerHTML = '';
+                this.params.sortField = '';
+                this.params.sortOrder = '';
+            }
+            else {
+                sortingBy.innerHTML = e.target.innerHTML;
+                this.params.sortField = field;
+                this.params.sortOrder = sort;
+            }
+            
             this.params.start = 1;
             this.items = [];
             this.portal.queryItems(this.params).then(this.createGallery);
