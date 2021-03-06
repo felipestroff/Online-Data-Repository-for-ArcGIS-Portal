@@ -14,7 +14,6 @@ new Vue({
             start: 1
         },
         searchInput: '',
-        topOfPage: false,
         bottomOfPage: false,
         source: null,
         items: [],
@@ -385,18 +384,7 @@ new Vue({
                 else {
                     app.bottomOfPage = false;
                 }
-
-                // Goto bottom (in pixels)
-                if (!bottomOfWindow && (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20)) {
-                    app.topOfPage = true;
-                }
-                else {
-                    app.topOfPage = false;
-                }
             };
-        },
-        gotoBottom: function () {
-            window.scrollTo(0, document.body.scrollHeight);
         },
         back2Top: function () {
             document.body.scrollTop = 0; // For Safari
