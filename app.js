@@ -196,11 +196,11 @@ new Vue({
             app.items = [];
 
             if (app.searchInput || app.searchTag) {
-                app.params.query = `${app.searchInput} ${app.searchTag ? `tags:(${app.searchTag}* OR ${app.searchTag})` : ''} orgid:${app.portal.id} ((type:"Feature Service"))`;
+                app.params.query = `${app.searchInput} ${app.searchTag ? `tags:(${app.searchTag})` : ''} orgid:${app.portal.id} ((type:"Feature Service"))`;
                 app.message = `Procurando por "${app.searchInput}".`;
             }
             else {
-                app.params.query = `${app.searchTag ? `tags:(${app.searchTag}* OR ${app.searchTag})` : ''} orgid:${app.portal.id} ((type:"Feature Service"))`;
+                app.params.query = `${app.searchTag ? `tags:(${app.searchTag})` : ''} orgid:${app.portal.id} ((type:"Feature Service"))`;
                 app.message = 'Carregando';
             }
 
@@ -216,7 +216,7 @@ new Vue({
             const tag = e.target.value;
 
             if (tag) {
-                app.params.query = `${app.searchInput} tags:(${tag}* OR ${tag}) orgid:${app.portal.id} ((type:"Feature Service"))`;
+                app.params.query = `${app.searchInput} tags:(${tag}) orgid:${app.portal.id} ((type:"Feature Service"))`;
                 app.message = `Procurando por "${tag}".`;
             }
             else {
@@ -230,11 +230,13 @@ new Vue({
             console.log('ArcGIS Portal gallery:', data);
 
             let app = this;
-            app.source = data;
-            app.source.results.forEach(function (item) {
+
+            data.results.forEach(function (item) {
                 app.items.push(item);
             });
 
+            // Remove array duplicates
+            app.source = data;
             app.loading = false;
         },
         createTags: function (data) {
@@ -251,7 +253,10 @@ new Vue({
 
             // Remove array duplicates
             app.tags = [...new Set(tags)];
-            app.tags.sort();
+            // Sort ASC
+            app.tags.sort(function (a, b) {
+                return a.localeCompare(b);
+            });
             app.loading = false;
         },
         sortBy: function (e) {
