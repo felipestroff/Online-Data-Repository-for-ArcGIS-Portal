@@ -19,6 +19,44 @@ new Vue({
         source: null,
         items: [],
         tags: [],
+        downloadList: [
+            {
+                name: 'SHP',
+                btnClass: 'btn-success',
+                format: 'shp',
+                icon: {
+                    class: 'bi bi-cloud-arrow-down-fill',
+                    path: 'M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 6.854l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708z'
+                }
+            },
+            {
+                name: 'CSV',
+                btnClass: 'btn-secondary',
+                format: 'csv',
+                icon: {
+                    class: 'bi bi-cloud-arrow-down-fill',
+                    path: 'M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 6.854l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708z'
+                }
+            },
+            {
+                name: 'KML',
+                btnClass: 'btn-warning',
+                format: 'kml',
+                icon: {
+                    class: 'bi bi-cloud-arrow-down-fill',
+                    path: 'M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 6.854l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708z'
+                }
+            },
+            {
+                name: 'JSON',
+                btnClass: 'btn-primary',
+                format: 'geojson',
+                icon: {
+                    class: 'bi bi-cloud-arrow-down-fill',
+                    path: 'M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 6.854l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708z'
+                }
+            }
+        ],
         sortList: [
             {
                 value: 'asc',
@@ -92,29 +130,19 @@ new Vue({
     },
     created() {
         console.log('Vue created !');
-
         this.start();
     },
-    mounted: function () {
+    mounted() {
         console.log('Vue mounted !');
-
         this.scroll();
-    },
-    beforeUpdate() {
-        console.log('Vue updating...');
-    },
-    updated() {
-        console.log('Vue updated !');
     },
     watch: {
         source: function (data) {
             let app = this;
-
             app.params = data.queryParams;
         },
         items: function (data) {
             let app = this;
-
             if (data.length) {
                 if (app.searchInput || app.searchTag) {
                     app.message = `Resultado da pesquisa por "${app.searchInput ? app.searchInput : app.searchTag}".`;
@@ -148,13 +176,12 @@ new Vue({
                     app.portal = portal;
                     app.params.query = `orgid:${app.portal.id} ((type:"Feature Service"))`;
         
+                    // Query items
                     await portal.queryItems(app.params).then(app.createGallery);
 
-                    app.params.num = app.source.total;
-
+                    // Query tags
+                    app.params.num = 100; // limited to 100
                     await portal.queryItems(app.params).then(app.createTags);
-
-                    app.params.num = 10;
                 })
                 .catch(app.handleException);
             });
@@ -165,6 +192,7 @@ new Vue({
             let app = this;
             app.loading = true;
             app.params.start = 1;
+            app.params.num = 10;
             app.items = [];
 
             if (app.searchInput || app.searchTag) {
@@ -178,10 +206,11 @@ new Vue({
 
             app.portal.queryItems(app.params).then(app.createGallery);
         },
-        searchByTag(e) {
+        searchByTag: function (e) {
             let app = this;
             app.loading = true;
             app.params.start = 1;
+            app.params.num = 10;
             app.items = [];
 
             const tag = e.target.value;
@@ -201,7 +230,6 @@ new Vue({
             console.log('ArcGIS Portal gallery:', data);
 
             let app = this;
-
             app.source = data;
             app.source.results.forEach(function (item) {
                 app.items.push(item);
@@ -217,33 +245,39 @@ new Vue({
 
             data.results.forEach(function (item) {
                 item.tags.forEach(function (tag) {
-                    tags.push(tag);
+                    tags.push(tag.toLowerCase());
                 });
             });
 
+            // Remove array duplicates
             app.tags = [...new Set(tags)];
+            app.tags.sort();
+            app.loading = false;
         },
         sortBy: function (e) {
+            let app = this;
+
             const sort = e.target.dataset.sort
                 field = e.target.dataset.field;
 
-            this.loading = true;
+            app.loading = true;
 
             // Reset sorting
             if (e.target.classList.contains('active')) {
                 sortingBy.innerHTML = '';
-                this.params.sortField = '';
-                this.params.sortOrder = '';
+                app.params.sortField = '';
+                app.params.sortOrder = '';
             }
             else {
                 sortingBy.innerHTML = e.target.innerHTML;
-                this.params.sortField = field;
-                this.params.sortOrder = sort;
+                app.params.sortField = field;
+                app.params.sortOrder = sort;
             }
             
-            this.params.start = 1;
-            this.items = [];
-            this.portal.queryItems(this.params).then(this.createGallery);
+            app.params.start = 1;
+            app.params.num = 10;
+            app.items = [];
+            app.portal.queryItems(app.params).then(app.createGallery);
         },
         loadMore: function () {
             let app = this;
@@ -252,6 +286,7 @@ new Vue({
 
             app.loading = true;
             app.params.start = app.source.queryParams.start + app.params.num;
+            app.params.num = 10;
             app.portal.queryItems(app.params).then(app.createGallery);
         },
         download: async function (url, title, format) {
