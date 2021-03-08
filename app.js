@@ -14,9 +14,11 @@ new Vue({
             start: 1
         },
         searchInput: '',
+        searchTag: '',
         bottomOfPage: false,
         source: null,
         items: [],
+        tags: [],
         sortList: [
             {
                 value: 'asc',
@@ -114,8 +116,8 @@ new Vue({
             let app = this;
 
             if (data.length) {
-                if (app.searchInput) {
-                    app.message = `Resultado da pesquisa por "${app.searchInput}".`;
+                if (app.searchInput || app.searchTag) {
+                    app.message = `Resultado da pesquisa por "${app.searchInput ? app.searchInput : app.searchTag}".`;
                 }
                 else {
                     app.message = 'Listando dados e informações disponíveis.';
@@ -140,13 +142,19 @@ new Vue({
                     url: app.portal.url
                 });
 
-                portal.load().then(function() {
+                portal.load().then(async function() {
                     console.log('ArcGIS Portal:', portal);
 
                     app.portal = portal;
                     app.params.query = `orgid:${app.portal.id} ((type:"Feature Service"))`;
         
-                    portal.queryItems(app.params).then(app.createGallery);
+                    await portal.queryItems(app.params).then(app.createGallery);
+
+                    app.params.num = app.source.total;
+
+                    await portal.queryItems(app.params).then(app.createTags);
+
+                    app.params.num = 10;
                 })
                 .catch(app.handleException);
             });
@@ -155,17 +163,35 @@ new Vue({
             e.preventDefault();
 
             let app = this;
-
             app.loading = true;
             app.params.start = 1;
             app.items = [];
 
-            if (app.searchInput) {
-                app.params.query = `${app.searchInput} orgid:${app.portal.id} ((type:"Feature Service"))`;
+            if (app.searchInput || app.searchTag) {
+                app.params.query = `${app.searchInput} ${app.searchTag ? `tags:(${app.searchTag}* OR ${app.searchTag})` : ''} orgid:${app.portal.id} ((type:"Feature Service"))`;
                 app.message = `Procurando por "${app.searchInput}".`;
             }
             else {
-                app.params.query = `orgid:${app.portal.id} ((type:"Feature Service"))`;
+                app.params.query = `${app.searchTag ? `tags:(${app.searchTag}* OR ${app.searchTag})` : ''} orgid:${app.portal.id} ((type:"Feature Service"))`;
+                app.message = 'Carregando';
+            }
+
+            app.portal.queryItems(app.params).then(app.createGallery);
+        },
+        searchByTag(e) {
+            let app = this;
+            app.loading = true;
+            app.params.start = 1;
+            app.items = [];
+
+            const tag = e.target.value;
+
+            if (tag) {
+                app.params.query = `${app.searchInput} tags:(${tag}* OR ${tag}) orgid:${app.portal.id} ((type:"Feature Service"))`;
+                app.message = `Procurando por "${tag}".`;
+            }
+            else {
+                app.params.query = `${app.searchInput} orgid:${app.portal.id} ((type:"Feature Service"))`;
                 app.message = 'Carregando';
             }
 
@@ -182,6 +208,20 @@ new Vue({
             });
 
             app.loading = false;
+        },
+        createTags: function (data) {
+            console.log('ArcGIS Portal tags:', data);
+
+            let app = this,
+                tags = [];
+
+            data.results.forEach(function (item) {
+                item.tags.forEach(function (tag) {
+                    tags.push(tag);
+                });
+            });
+
+            app.tags = [...new Set(tags)];
         },
         sortBy: function (e) {
             const sort = e.target.dataset.sort
