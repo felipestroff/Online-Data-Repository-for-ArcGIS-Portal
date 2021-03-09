@@ -184,16 +184,20 @@ new Vue({
 
             data.results.forEach(function (item) {
                 item.tags.forEach(function (tag) {
-                    tags.push(tag.toLowerCase());
+                    tags.push(tag.trim().toLowerCase());
                 });
             });
 
             // Remove array duplicates
-            app.tags = [...new Set(tags)];
+            tags = [...new Set(tags)];
             // Sort ASC
-            app.tags.sort(function (a, b) {
+            tags.sort(function (a, b) {
                 return a.localeCompare(b);
             });
+
+            console.log(tags);
+
+            app.tags = tags;
             app.loading = false;
         },
         sortBy: function (e) {
