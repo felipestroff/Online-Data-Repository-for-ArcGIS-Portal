@@ -23,7 +23,6 @@
                 <div class="input-group mb-3">
                     <input type="search" class="form-control form-control-lg" placeholder="Qual dado ou informação você procura?" autocomplete="off" aria-label="Qual dado ou informação você procura?" aria-describedby="search-addon"
                         v-model="searchInput" v-on:input="search">
-                    
                     <span class="input-group-text" id="search-addon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
                             <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
@@ -48,7 +47,7 @@
                         <span id="sortingBy"></span>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuSort">
-                        <li v-for="item in sortList">
+                        <li v-for="item in sortList" v-if="item.enabled">
                             <a v-on:click="sortBy" v-bind:data-sort="item.value" v-bind:data-field="item.field" class="dropdown-item" href="#"
                                 v-bind:class="{ 'active': params.sortOrder === item.value  && params.sortField === item.field }">
                                 {{ item.name }}
@@ -98,7 +97,7 @@
 
                                 <!-- Download buttons -->
                                 <div class="mt-3">
-                                    <button v-for="dItem in downloadList" type="button" v-bind:class="dItem.btnClass" class="btn btn-sm me-2" v-on:click="download(item.url, item.title, dItem.format)">
+                                    <button v-for="dItem in downloadList" v-if="dItem.enabled" v-on:click="download(item.url, item.title, dItem.format)" v-bind:class="dItem.btnClass" type="button"  class="btn btn-sm me-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" v-bind:class="dItem.icon.class" viewBox="0 0 16 16">
                                             <path v-bind:d="dItem.icon.path"/>
                                         </svg>

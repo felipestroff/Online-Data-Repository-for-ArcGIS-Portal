@@ -31,22 +31,8 @@ https://codexremote.com.br/sisdia/repositorio-de-dados
 
 1. Install a web server and start apache service
 2. Put app folder into web server folder `www` or `htdocs`
+3. change current config in `config.json` file
 3. Goto `http://localhost/app-folder-name` in browser
-
-- - - - -
-
-# app.js
-
-To change current params to our ArcGIS REST API, modify these in:
-
-```
-data: {
-    portal: {}
-    params: {}
-}
-```
-
-See more: https://developers.arcgis.com/rest/users-groups-and-items/search.htm
 
 - - - - -
 
