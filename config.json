@@ -1,7 +1,5 @@
 {
-    "arcgis": {
-        "portalUrl": "https://sisdia.df.gov.br/portal"
-    },
+    "portalUrl": "https://sisdia.df.gov.br/portal",
     "downloads": [
         {
             "name": "SHP",
@@ -117,5 +115,12 @@
             },
             "enabled": true
         }
-    ]
+    ],
+    "options": {
+        "enableSearch": true,
+        "enableTags": true,
+        "enableThumbnails": true,
+        "enableDescription": true,
+        "enableBackTop": true
+    }
 }

@@ -1,10 +1,8 @@
 new Vue({
     el: '#app',
     data: {
+        portalUrl: '',
         message: '',
-        portal: {
-            url: ''
-        },
         params: {
             query: '',
             sortField: '',
@@ -19,8 +17,15 @@ new Vue({
         tags: [],
         downloadList: [],
         sortList: [],
-        loading: false,
         bottomOfPage: false,
+        loading: false,
+        options: {
+            enableSearch: false,
+            enableTags: false,
+            enableThumbnails: false,
+            enableDescription: false,
+            enableBackTop: false
+        }
     },
     created() {
         console.log('Vue created !');
@@ -32,8 +37,7 @@ new Vue({
     },
     watch: {
         source: function (data) {
-            let app = this;
-            app.params = data.queryParams;
+            this.params = data.queryParams;
         },
         items: function (data) {
             let app = this;
@@ -52,32 +56,55 @@ new Vue({
     },
     methods: {
         getConfig: function () {
+            console.log('Reading config file...');
+
             let app = this;
+            app.loading = true;
 
             fetch('./config.json')
             .then(function(response) {
                 return response.json();
             })
             .then(function(json) {
-                app.portal.url = json.arcgis.portalUrl;
-                app.sortList = json.sorts;
-                app.downloadList = json.downloads;
+                console.log('Config json', json);
+
+                app.portalUrl = json.portalUrl;
+            
+                // Sorting
+                json.sorts.forEach(function (item) {
+                    if (item.enabled) {
+                        app.sortList.push(item);
+                    }
+                });
+
+                // Download buttons
+                json.downloads.forEach(function (item) {
+                    if (item.enabled) {
+                        app.downloadList.push(item);
+                    }
+                });
+
+                // Options
+                app.options.enableSearch = json.options.enableSearch;
+                app.options.enableTags = json.options.enableTags;
+                app.options.enableThumbnails = json.options.enableThumbnails;
+                app.options.enableDescription = json.options.enableDescription;
+                app.options.enableBackTop = json.options.enableBackTop;
 
                 // Start app
                 app.start();
-            });
+            })
+            .catch(app.handleException);
         },
         start: function () {
-            console.log('Starting...');
+            console.log('Starting app...');
 
             let app = this;
-
-            app.loading = true;
 
             require(['esri/portal/Portal'], function(Portal) {
                 const portal = new Portal({
                     authMode: 'anonymous',
-                    url: app.portal.url
+                    url: app.portalUrl
                 });
 
                 portal.load().then(async function() {
