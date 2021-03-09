@@ -1,7 +1,9 @@
 new Vue({
     el: '#app',
     data: {
-        portalUrl: '',
+        portal: {
+            url: ''
+        },
         message: '',
         params: {
             query: '',
@@ -35,26 +37,42 @@ new Vue({
         console.log('Vue mounted !');
         this.scroll();
     },
+    // When props changes
     watch: {
         source: function (data) {
             this.params = data.queryParams;
         },
         items: function (data) {
             let app = this;
+
+            // Append message text
+            // If has results
             if (data.length) {
-                if (app.searchInput || app.searchTag) {
-                    app.message = `Resultado da pesquisa por "${app.searchInput ? app.searchInput : app.searchTag}".`;
+                // Search input and tags
+                if (app.searchInput && app.searchTag) {
+                    app.message = `Resultado da pesquisa por "${app.searchInput}" + "${app.searchTag}".`;
                 }
+                // Search input only
+                else if (app.searchInput) {
+                    app.message = `Resultado da pesquisa por "${app.searchInput}".`;
+                }
+                // Tags only
+                else if (app.searchTag) {
+                    app.message = `Resultado da pesquisa por "${app.searchTag}".`;
+                }
+                // None of these
                 else {
                     app.message = 'Listando dados e informações disponíveis.';
                 }
             }
+            // No results
             else {
                 app.message = 'Nenhum resultado encontrado.'
             }
         }
     },
     methods: {
+        // Request config.json file
         getConfig: function () {
             console.log('Reading config file...');
 
@@ -68,7 +86,7 @@ new Vue({
             .then(function(json) {
                 console.log('Config json', json);
 
-                app.portalUrl = json.portalUrl;
+                app.portal.url = json.portalUrl;
             
                 // Sorting
                 json.sorts.forEach(function (item) {
@@ -96,6 +114,7 @@ new Vue({
             })
             .catch(app.handleException);
         },
+        // Start app
         start: function () {
             console.log('Starting app...');
 
@@ -104,7 +123,7 @@ new Vue({
             require(['esri/portal/Portal'], function(Portal) {
                 const portal = new Portal({
                     authMode: 'anonymous',
-                    url: app.portalUrl
+                    url: app.portal.url
                 });
 
                 portal.load().then(async function() {
@@ -123,6 +142,48 @@ new Vue({
                 .catch(app.handleException);
             });
         },
+        // Create item gallery from portal request
+        createGallery: function (data) {
+            console.log('ArcGIS Portal gallery:', data);
+
+            let app = this;
+
+            data.results.forEach(function (item) {
+                app.items.push(item);
+            });
+
+            // Remove array duplicates
+            app.source = data;
+            app.loading = false;
+        },
+        // Create tags from portal request
+        createTags: function (data) {
+            console.log('ArcGIS Portal tags:', data);
+
+            let app = this,
+                tags = [];
+
+            app.loading = true;
+
+            data.results.forEach(function (item) {
+                item.tags.forEach(function (tag) {
+                    // Remove spaces in start and end of string (trim)
+                    // Transform string to lower case
+                    tags.push(tag.trim().toLowerCase());
+                });
+            });
+
+            // Remove array duplicates
+            tags = [...new Set(tags)];
+            // Sort array ASC
+            tags.sort(function (a, b) {
+                return a.localeCompare(b);
+            });
+
+            app.tags = tags;
+            app.loading = false;
+        },
+        // Search items by text input
         search: function (e) {
             e.preventDefault();
 
@@ -143,7 +204,10 @@ new Vue({
 
             app.portal.queryItems(app.params).then(app.createGallery);
         },
+        // Search items by tags on select or input
         searchByTag: function (e) {
+            e.preventDefault();
+            
             let app = this;
             app.loading = true;
             app.params.start = 1;
@@ -163,43 +227,7 @@ new Vue({
 
             app.portal.queryItems(app.params).then(app.createGallery);
         },
-        createGallery: function (data) {
-            console.log('ArcGIS Portal gallery:', data);
-
-            let app = this;
-
-            data.results.forEach(function (item) {
-                app.items.push(item);
-            });
-
-            // Remove array duplicates
-            app.source = data;
-            app.loading = false;
-        },
-        createTags: function (data) {
-            console.log('ArcGIS Portal tags:', data);
-
-            let app = this,
-                tags = [];
-
-            data.results.forEach(function (item) {
-                item.tags.forEach(function (tag) {
-                    tags.push(tag.trim().toLowerCase());
-                });
-            });
-
-            // Remove array duplicates
-            tags = [...new Set(tags)];
-            // Sort ASC
-            tags.sort(function (a, b) {
-                return a.localeCompare(b);
-            });
-
-            console.log(tags);
-
-            app.tags = tags;
-            app.loading = false;
-        },
+        // Sort items by attr and order
         sortBy: function (e) {
             let app = this;
 
@@ -225,6 +253,7 @@ new Vue({
             app.items = [];
             app.portal.queryItems(app.params).then(app.createGallery);
         },
+        // Infinite scroll
         loadMore: function () {
             let app = this;
 
@@ -235,9 +264,10 @@ new Vue({
             app.params.num = 10;
             app.portal.queryItems(app.params).then(app.createGallery);
         },
+        // Convert and download layer data
         download: async function (url, title, format) {
             console.log('Layer url', url);
-            console.log('Download format', format);
+            console.log('Download format: ' + format);
 
             let app = this;
 
@@ -262,6 +292,31 @@ new Vue({
                 }
             }
         },
+        // Async query item layer data
+        queryLayer: function (layerUrl) {
+            let app = this;
+
+            return new Promise(function(resolve, reject) {
+                require(['esri/tasks/QueryTask', 'esri/tasks/support/Query'], function(QueryTask, Query) {
+                    const queryTask = new QueryTask({
+                        url: layerUrl + '/0'
+                    });
+                
+                    const query = new Query();
+                    query.returnGeometry = true;
+                    query.returnCentroid = true;
+                    query.outFields = ['*'];
+                    query.where = '1=1';
+                    query.outSpatialReference = {'wkid' : 4326};
+                
+                    queryTask.execute(query).then(function(results) {
+                        resolve(results);
+                    })
+                    .catch(app.handleException);
+                });
+            });
+        },
+        // Convert layer features to CSV file (with coordinates)
         layer2CSV: function (data, layerName) {
             let app = this,
                 sheetContent = '';
@@ -297,33 +352,28 @@ new Vue({
 
             app.createFileLink(blob, layerName, '.csv');
         },
-        layer2GeoJSON: function (data, layerName) {
+        // Convert layer features to JSON then convert to GeoJSON file
+        layer2GeoJSON: async function (data, layerName) {
             const app = this,
-            featureCollection = {
-                type: 'FeatureCollection',
-                features: data.features.map(f => Terraformer.ArcGIS.parse(f))
-            },
+            featureCollection = await app.convertFeatures2Json(data.features),
             blob = new Blob([JSON.stringify(featureCollection)], { type: 'application/geo+json;charset=utf-8;' });
 
             app.createFileLink(blob, layerName, '.geojson');
         },
-        layer2Shapefile: function (data, layerName) {
+        // Convert layer features to JSON then convert to Shapefile zip
+        layer2Shapefile: async function (data, layerName) {
             const app = this,
-            featureCollection = {
-                type: 'FeatureCollection',
-                features: data.features.map(f => Terraformer.ArcGIS.parse(f))
-            };
+            featureCollection = await app.convertFeatures2Json(data.features);
             
             GeoShape.transformAndDownload(featureCollection, layerName + '.zip');
 
             app.loading = false;
         },
-        layer2KML: function (data, layerName) {
+        // Convert layer features to JSON then convert to kml file
+        layer2KML: async function (data, layerName) {
             const app = this,
-            featureCollection = {
-                type: 'FeatureCollection',
-                features: data.features.map(f => Terraformer.ArcGIS.parse(f))
-            },
+            featureCollection = await app.convertFeatures2Json(data.features);
+
             // Uses custom lib: tokml.js
             kml = tokml(featureCollection, {
                 documentName: layerName,
@@ -334,6 +384,16 @@ new Vue({
             app.createFileLink(blob, layerName, '.kml');
 
         },
+        convertFeatures2Json: function (features) {
+            return new Promise(function(resolve, reject) {
+                const featureCollection = {
+                    type: 'FeatureCollection',
+                    features: features.map(f => Terraformer.ArcGIS.parse(f))
+                };
+                resolve(featureCollection);
+            });
+        },
+        // Create link for download converted layer data
         createFileLink: function (blob, filename, ext) {
             let app = this;
 
@@ -357,45 +417,7 @@ new Vue({
                 app.message = 'Listando dados e informações disponíveis.';
             }
         },
-        queryLayer: function (layerUrl) {
-            let app = this;
-
-            return new Promise(function(resolve, reject) {
-                require(['esri/tasks/QueryTask', 'esri/tasks/support/Query'], function(QueryTask, Query) {
-                    const queryTask = new QueryTask({
-                        url: layerUrl + '/0'
-                    });
-                
-                    const query = new Query();
-                    query.returnGeometry = true;
-                    query.returnCentroid = true;
-                    query.outFields = ['*'];
-                    query.where = '1=1';
-                    query.outSpatialReference = {'wkid' : 4326};
-                
-                    queryTask.execute(query).then(function(results) {
-                        resolve(results);
-                    })
-                    .catch(app.handleException);
-                });
-            });
-        },
-        expand: function (e) {
-            const app = this,
-                originalText = e.target.dataset.original,
-                expanded = e.target.dataset.expanded;
-
-            if (expanded == 'false') {
-                e.target.innerText = originalText;
-                e.target.dataset.expanded = true;
-                e.target.title = 'Clique para recolher';
-            }
-            else {
-                e.target.innerText = app.limitString(originalText, 300);
-                e.target.dataset.expanded = false;
-                e.target.title = 'Clique para expandir';
-            }
-        },
+        // Infinite scroll action
         scroll: function () {
             const app = this;
 
@@ -415,9 +437,27 @@ new Vue({
                 }
             };
         },
+        // Back to top button action
         back2Top: function () {
             document.body.scrollTop = 0; // For Safari
             document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+        },
+        // Toggle item description
+        expand: function (e) {
+            const app = this,
+                originalText = e.target.dataset.original,
+                expanded = e.target.dataset.expanded;
+
+            if (expanded == 'false') {
+                e.target.innerText = originalText;
+                e.target.dataset.expanded = true;
+                e.target.title = 'Clique para recolher';
+            }
+            else {
+                e.target.innerText = app.limitString(originalText, 300);
+                e.target.dataset.expanded = false;
+                e.target.title = 'Clique para expandir';
+            }
         },
         // Remove HTML tags from string
         stripHtml: function (html) {
@@ -425,6 +465,7 @@ new Vue({
             tmp.innerHTML = html;
             return tmp.textContent || tmp.innerText || '';
         },
+        // Limit string for description
         limitString: function (str, length, ending) {
             if (length == null) {
                 length = 100;
@@ -439,6 +480,7 @@ new Vue({
                 return str;
             }
         },
+        // Error handling
         handleException: function (e) {
             console.error(e);
             this.loading = false;
