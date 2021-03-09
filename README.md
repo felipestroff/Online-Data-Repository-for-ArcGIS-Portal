@@ -52,6 +52,5 @@ See more: https://developers.arcgis.com/rest/users-groups-and-items/search.htm
 
 # Todo
 
-- Add support to download shapefile layers
-- Add category and tags search
-- Paginate elements (current limited by 10 items)
+- Support to search (on input) in mobile devices
+- Support to infinite scroll in mobile devices
