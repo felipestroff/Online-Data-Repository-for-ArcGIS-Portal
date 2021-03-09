@@ -256,12 +256,12 @@ new Vue({
         // Infinite scroll
         loadMore: function () {
             let app = this;
+            app.params.num = 10;
 
             console.log(`Adding ${app.params.num} more data results`);
 
             app.loading = true;
             app.params.start = app.source.queryParams.start + app.params.num;
-            app.params.num = 10;
             app.portal.queryItems(app.params).then(app.createGallery);
         },
         // Convert and download layer data
@@ -417,25 +417,28 @@ new Vue({
                 app.message = 'Listando dados e informações disponíveis.';
             }
         },
-        // Infinite scroll action
+        // Scroll action
         scroll: function () {
             const app = this;
+            window.addEventListener('scroll', app.infiniteScroll);
+            window.addEventListener('touchend', app.infiniteScroll);
+        },
+        // Infinite scroll
+        infiniteScroll: function () {
+            const app = this;
 
-            window.onscroll = () => {
-                let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+            if (app.params.start <= app.source.total &&
+                window && (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight)) {
+                app.loadMore();
+            }
 
-                if (app.params.start <= app.source.total && bottomOfWindow) {
-                    app.loadMore();
-                }
-
-                // Back to top (in pixels)
-                if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-                    app.bottomOfPage = true;
-                }
-                else {
-                    app.bottomOfPage = false;
-                }
-            };
+            // Back to top (in pixels)
+            if (document.documentElement.scrollTop > 20) {
+                app.bottomOfPage = true;
+            }
+            else {
+                app.bottomOfPage = false;
+            }
         },
         // Back to top button action
         back2Top: function () {
