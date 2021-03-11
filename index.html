@@ -31,7 +31,10 @@
                 </div>
             </form>
 
-            <div class="d-flex justify-content-end mb-3">
+            <div class="d-flex mb-3">
+                <div class="flex-grow-1 mt-2">
+                    <a v-on:click="reset" href="#" class="custom-message">Ver tudo</a>
+                </div>
                 <!-- Sorting -->
                 <div v-if="sortList.length" class="btn-group">
                     <button type="button" class="btn dropdown-toggle dropdown-toggle-split" id="dropdownMenuSort" data-bs-toggle="dropdown" aria-expanded="false" data-bs-reference="parent">
@@ -39,7 +42,7 @@
                         <span id="sortingBy"></span>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuSort">
-                        <li v-for="item in sortList" v-if="item.enabled">
+                        <li v-for="(item, index) in sortList" :key="index" v-if="item.enabled">
                             <a v-on:click="sortBy"
                                 v-bind:data-sort="item.value"
                                 v-bind:data-field="item.field"
@@ -47,7 +50,7 @@
                                 class="dropdown-item" href="#">
                                 {{ item.name }}
                                 <svg v-bind:class="item.icon.class" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                    <path v-for="path in item.icon.paths"
+                                    <path v-for="(path, index) in item.icon.paths" :key="index"
                                         v-bind:fill-rule="path.fill_rule"
                                         v-bind:d="path.d"
                                     />
@@ -62,9 +65,9 @@
                 <div v-if="options.enableTags" class="col-md-3 mb-4">
                     <div v-if="tags">
                         <label for="tags" class="custom-action-title"><strong>Tags</strong></label>
-                        <input v-model="searchTag"v-on:input="searchByTag" id="tags" list="tagsList" type="search" class="form-control mt-4" placeholder="Selecione...">
+                        <input v-model="searchTag" v-on:input="searchByTag" id="tags" list="tagsList" type="search" class="form-control mt-4" placeholder="Selecione...">
                         <datalist id="tagsList">
-                            <option v-for="tag in tags">{{ tag }}</option>
+                            <option v-for="(tag, index) in tags" :key="index">{{ tag }}</option>
                         </datalist>
                     </div>
                 </div>
@@ -80,7 +83,7 @@
                             </span>
                         </div>
                         <div class="list-group list-group-flush">
-                            <div v-for="item in items" class="custom-list-group-item list-group-item list-group-item-action pt-4 pb-4">
+                            <div v-for="item in items" :key="item.id" class="custom-list-group-item list-group-item list-group-item-action pt-4 pb-4">
                                 <!-- Thumbnail and Title -->
                                 <div class="d-flex justify-content-start align-items-center">
                                     <img v-if="options.enableThumbnails"
@@ -105,7 +108,7 @@
 
                                 <!-- Download buttons -->
                                 <div v-if="downloadList.length" class="mt-3">
-                                    <button v-for="dItem in downloadList"
+                                    <button v-for="(dItem, index) in downloadList" :key="index"
                                         v-if="dItem.enabled"
                                         v-on:click="download(item.url, item.title, dItem.format)"
                                         v-bind:style="{ 'background-color': dItem.background }" type="button" class="custom-download-btn btn me-2 mb-2">

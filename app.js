@@ -133,14 +133,36 @@ new Vue({
                     app.params.query = `orgid:${app.portal.id} ((type:"Feature Service"))`;
         
                     // Query items
-                    await portal.queryItems(app.params).then(app.createGallery);
+                    await app.portal.queryItems(app.params).then(app.createGallery);
 
                     // Query tags
                     app.params.num = 100; // limited to 100
-                    await portal.queryItems(app.params).then(app.createTags);
+                    await app.portal.queryItems(app.params).then(app.createTags);
                 })
                 .catch(app.handleException);
             });
+        },
+        reset: async function () {
+            console.log('Reseting app...');
+
+            let app = this;
+            app.loading = true;
+            app.params.query = `orgid:${app.portal.id} ((type:"Feature Service"))`;
+            app.params.sortField = '';
+            app.params.sortOrder = '';
+            app.num = 10;
+            app.start = 1;
+            app.items = [];
+            app.tags = [];
+            app.searchInput = '';
+            app.searchTag = '';
+
+            // Query items
+            await app.portal.queryItems(app.params).then(app.createGallery);
+
+            // Query tags
+            app.params.num = 100; // limited to 100
+            await app.portal.queryItems(app.params).then(app.createTags);
         },
         // Create item gallery from portal request
         createGallery: function (data) {
@@ -152,7 +174,8 @@ new Vue({
                 app.items.push(item);
             });
 
-            // Remove array duplicates
+            // Remove array duplicates by prop
+            app.items = [...new Map(app.items.map(item => [item.id, item])).values()];
             app.source = data;
             app.loading = false;
         },
@@ -184,7 +207,7 @@ new Vue({
             app.loading = false;
         },
         // Search items by text input
-        search: function (e) {
+        search: async function (e) {
             e.preventDefault();
 
             let app = this;
