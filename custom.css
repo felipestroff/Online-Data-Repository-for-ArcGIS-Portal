@@ -1,3 +1,7 @@
+html, body {
+    background-color: #F9F8EE;
+}
+
 .custom-loading {
     position: fixed;
     z-index: 999;
@@ -11,12 +15,57 @@
     right: 0;
 }
 
+.custom-form-search {
+    height: 50px;
+    border-radius: 100px !important;
+    font-family: 'Roboto';
+    font-style: italic;
+    font-size: 18px;
+    color: #999999;
+}
+
+.custom-input-group-text {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background-color: transparent;
+    border: transparent;
+}
+
+.custom-message {
+    font-family: 'Roboto';
+    font-style: 15px;
+    color: #444444;
+}
+
+.custom-action-title {
+    font-family: 'Roboto';
+    font-weight: bold;
+    font-size: 15px;
+    color: #444444;
+}
+
+.custom-list-group-item {
+    background: transparent;
+}
+
 .custom-item-title {
+    font-family: 'Roboto';
+    font-size: 16px;
     color: #5F8B3F;
 }
 
 .custom-item-text {
+    font-size: 14px;
+    color: #333333;
     cursor: pointer;
+}
+
+.custom-download-btn {
+    border-radius: 100px;
+    font-family: 'Roboto';
+    font-size: 18px;
+    color: #FFFFFF;
 }
 
 .page-navigation {

@@ -50,19 +50,19 @@ new Vue({
             if (data.length) {
                 // Search input and tags
                 if (app.searchInput && app.searchTag) {
-                    app.message = `Resultado da pesquisa por "${app.searchInput}" + "${app.searchTag}".`;
+                    app.message = `Resultado da pesquisa por "${app.searchInput}" + "${app.searchTag}":`;
                 }
                 // Search input only
                 else if (app.searchInput) {
-                    app.message = `Resultado da pesquisa por "${app.searchInput}".`;
+                    app.message = `Resultado da pesquisa por "${app.searchInput}":`;
                 }
                 // Tags only
                 else if (app.searchTag) {
-                    app.message = `Resultado da pesquisa por "${app.searchTag}".`;
+                    app.message = `Resultado da pesquisa por "${app.searchTag}":`;
                 }
                 // None of these
                 else {
-                    app.message = 'Listando dados e informações disponíveis.';
+                    app.message = 'Listando dados e informações disponíveis:';
                 }
             }
             // No results
@@ -195,11 +195,11 @@ new Vue({
 
             if (app.searchInput || app.searchTag) {
                 app.params.query = `${app.searchInput} ${app.searchTag ? `tags:(${app.searchTag})` : ''} orgid:${app.portal.id} ((type:"Feature Service"))`;
-                app.message = `Procurando por "${app.searchInput}".`;
+                app.message = `Procurando por "${app.searchInput}"...`;
             }
             else {
                 app.params.query = `${app.searchTag ? `tags:(${app.searchTag})` : ''} orgid:${app.portal.id} ((type:"Feature Service"))`;
-                app.message = 'Carregando';
+                app.message = 'Carregando...';
             }
 
             app.portal.queryItems(app.params).then(app.createGallery);
@@ -218,11 +218,11 @@ new Vue({
 
             if (tag) {
                 app.params.query = `${app.searchInput} tags:(${tag}) orgid:${app.portal.id} ((type:"Feature Service"))`;
-                app.message = `Procurando por "${tag}".`;
+                app.message = `Procurando por "${tag}"...`;
             }
             else {
                 app.params.query = `${app.searchInput} orgid:${app.portal.id} ((type:"Feature Service"))`;
-                app.message = 'Carregando';
+                app.message = 'Carregando...';
             }
 
             app.portal.queryItems(app.params).then(app.createGallery);
@@ -298,8 +298,14 @@ new Vue({
 
             return new Promise(function(resolve, reject) {
                 require(['esri/tasks/QueryTask', 'esri/tasks/support/Query'], function(QueryTask, Query) {
+                    // Set sublayer/index of layer
+                    let index = layerUrl.slice(-1); // 0;
+                    if (index !== '0') {
+                        index = '/0';
+                    }
+
                     const queryTask = new QueryTask({
-                        url: layerUrl + '/0'
+                        url: layerUrl + index
                     });
                 
                     const query = new Query();
@@ -360,15 +366,6 @@ new Vue({
 
             app.createFileLink(blob, layerName, '.geojson');
         },
-        // Convert layer features to JSON then convert to Shapefile zip
-        layer2Shapefile: async function (data, layerName) {
-            const app = this,
-            featureCollection = await app.convertFeatures2Json(data.features);
-            
-            GeoShape.transformAndDownload(featureCollection, layerName + '.zip');
-
-            app.loading = false;
-        },
         // Convert layer features to JSON then convert to kml file
         layer2KML: async function (data, layerName) {
             const app = this,
@@ -384,11 +381,26 @@ new Vue({
             app.createFileLink(blob, layerName, '.kml');
 
         },
+        // Convert layer features to JSON then convert to Shapefile zip
+        layer2Shapefile: async function (data, layerName) {
+            const app = this,
+            featureCollection = await app.convertFeatures2Json(data.features);
+            
+            GeoShape.transformAndDownload(featureCollection, layerName + '.zip');
+
+            app.loading = false;
+        },
         convertFeatures2Json: function (features) {
             return new Promise(function(resolve, reject) {
                 const featureCollection = {
                     type: 'FeatureCollection',
-                    features: features.map(f => Terraformer.ArcGIS.parse(f))
+                    features: features.map(f => Terraformer.ArcGIS.parse(f)),
+                    crs: {
+                        type: 'name',
+                        properties: {
+                            name: 'EPSG:4326',
+                        }
+                    }
                 };
                 resolve(featureCollection);
             });
@@ -398,23 +410,27 @@ new Vue({
             let app = this;
 
             // IE 10+
-            if (navigator.msSaveBlob) {
-                navigator.msSaveBlob(blob, filename);
+            if (window.navigator && window.navigator.msSaveBlob) {
+                window.navigator.msSaveBlob(blob, filename);
             }
             // Browsers that support HTML5 download attribute
             else {
-                const url = URL.createObjectURL(blob),
-                link = document.createElement('a');
-                link.setAttribute('href', url);
-                link.setAttribute('download', filename + ext);
-                link.style.visibility = 'hidden';
-
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                var a = document.createElement("a");
+                a.style = 'display: none';
+                document.body.appendChild(a);
+                //Create a DOMString representing the blob
+                //and point the link element towards it
+                var url = window.URL.createObjectURL(blob);
+                a.href = url;
+                a.download = filename + ext;
+                a.target = '_self';
+                //programatically click the link to trigger the download
+                a.click();
+                //release the reference to the file by revoking the Object URL
+                window.URL.revokeObjectURL(url);
 
                 app.loading = false;
-                app.message = 'Listando dados e informações disponíveis.';
+                app.message = 'Listando dados e informações disponíveis:';
             }
         },
         // Scroll action
@@ -487,7 +503,7 @@ new Vue({
         handleException: function (e) {
             console.error(e);
             this.loading = false;
-            this.message = 'Ocorreu um erro.';
+            this.message = 'Ocorreu um erro!';
         }
     }
 });
