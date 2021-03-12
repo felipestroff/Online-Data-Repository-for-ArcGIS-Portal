@@ -379,7 +379,8 @@ new Vue({
             });
 
             const blob = new Blob([sheetContent], { type: 'text/csv;charset=utf-8;' }),
-            fileName = layerName.replace(/ /g, '_');
+            fileName = layerName.replace(/ /g, '_')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
             app.createFileLink(blob, fileName, '.csv');
         },
@@ -388,7 +389,8 @@ new Vue({
             const app = this,
             featureCollection = await app.convertFeatures2Json(data.features),
             blob = new Blob([JSON.stringify(featureCollection)], { type: 'application/geo+json;charset=utf-8;' }),
-            fileName = layerName.replace(/ /g, '_');
+            fileName = layerName.replace(/ /g, '_')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
             app.createFileLink(blob, fileName, '.geojson');
         },
@@ -396,7 +398,8 @@ new Vue({
         layer2KML: async function (data, layerName) {
             const app = this,
             featureCollection = await app.convertFeatures2Json(data.features),
-            fileName = layerName.replace(/ /g, '_');
+            fileName = layerName.replace(/ /g, '_')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
             // Uses custom lib: tokml.js
             kml = tokml(featureCollection, {
@@ -412,7 +415,8 @@ new Vue({
         layer2Shapefile: async function (data, layerName) {
             const app = this,
             featureCollection = await app.convertFeatures2Json(data.features, true),
-            fileName = layerName.replace(/ /g, '_');
+            fileName = layerName.replace(/ /g, '_')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
             GeoShape.transformAndDownload(featureCollection, fileName);
 
