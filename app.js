@@ -150,8 +150,8 @@ new Vue({
             app.params.query = `orgid:${app.portal.id} ((type:"Feature Service"))`;
             app.params.sortField = '';
             app.params.sortOrder = '';
-            app.num = 10;
-            app.start = 1;
+            app.params.num = 10;
+            app.params.start = 1;
             app.items = [];
             app.tags = [];
             app.searchInput = '';
