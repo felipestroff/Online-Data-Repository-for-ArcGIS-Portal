@@ -334,7 +334,7 @@ new Vue({
                 
                     const query = new Query();
                     query.returnGeometry = true;
-                    query.returnCentroid = true;
+                    //query.returnCentroid = true; // ! Download bug
                     query.outFields = ['*'];
                     query.where = '1=1';
                     query.outSpatialReference = {'wkid' : 4326};
@@ -365,8 +365,8 @@ new Vue({
                 // New row
                 sheetContent += '\r\n';
 
-                const latitude = feature.geometry.centroid.latitude,
-                    longitude = feature.geometry.centroid.latitude;
+                const latitude = feature.geometry.extent.center.latitude,
+                    longitude = feature.geometry.extent.center.longitude;
 
                 // Append coordinates attrs in cols
                 sheetContent += latitude + ',';
@@ -378,22 +378,25 @@ new Vue({
                 });
             });
 
-            const blob = new Blob([sheetContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([sheetContent], { type: 'text/csv;charset=utf-8;' }),
+            fileName = layerName.replace(/ /g, '_');
 
-            app.createFileLink(blob, layerName, '.csv');
+            app.createFileLink(blob, fileName, '.csv');
         },
         // Convert layer features to JSON then convert to GeoJSON file
         layer2GeoJSON: async function (data, layerName) {
             const app = this,
             featureCollection = await app.convertFeatures2Json(data.features),
-            blob = new Blob([JSON.stringify(featureCollection)], { type: 'application/geo+json;charset=utf-8;' });
+            blob = new Blob([JSON.stringify(featureCollection)], { type: 'application/geo+json;charset=utf-8;' }),
+            fileName = layerName.replace(/ /g, '_');
 
-            app.createFileLink(blob, layerName, '.geojson');
+            app.createFileLink(blob, fileName, '.geojson');
         },
         // Convert layer features to JSON then convert to kml file
         layer2KML: async function (data, layerName) {
             const app = this,
-            featureCollection = await app.convertFeatures2Json(data.features);
+            featureCollection = await app.convertFeatures2Json(data.features),
+            fileName = layerName.replace(/ /g, '_');
 
             // Uses custom lib: tokml.js
             kml = tokml(featureCollection, {
@@ -402,30 +405,35 @@ new Vue({
             }),
             blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
 
-            app.createFileLink(blob, layerName, '.kml');
+            app.createFileLink(blob, fileName, '.kml');
 
         },
         // Convert layer features to JSON then convert to Shapefile zip
         layer2Shapefile: async function (data, layerName) {
             const app = this,
-            featureCollection = await app.convertFeatures2Json(data.features);
+            featureCollection = await app.convertFeatures2Json(data.features, true),
+            fileName = layerName.replace(/ /g, '_');
 
-            GeoShape.transformAndDownload(featureCollection, layerName);
+            GeoShape.transformAndDownload(featureCollection, fileName);
 
             app.loading = false;
         },
-        convertFeatures2Json: function (features) {
+        convertFeatures2Json: function (features, crs) {
             return new Promise(function(resolve, reject) {
                 const featureCollection = {
                     type: 'FeatureCollection',
-                    features: features.map(f => Terraformer.ArcGIS.parse(f)),
-                    crs: {
+                    features: features.map(f => Terraformer.ArcGIS.parse(f))
+                };
+
+                if (crs) {
+                    featureCollection.crs = {
                         type: 'name',
                         properties: {
-                            name: 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]]',
+                            name: 'GEOGCS["GCS_SIRGAS_2000",DATUM["D_SIRGAS_2000",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433],AUTHORITY["EPSG",4674]]',
                         }
-                    }
-                };
+                    };
+                }
+
                 resolve(featureCollection);
             });
         },
