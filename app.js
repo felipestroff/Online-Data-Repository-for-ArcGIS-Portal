@@ -459,20 +459,19 @@ new Vue({
         // Scroll action
         scroll: function () {
             const app = this;
-            window.addEventListener('scroll', app.infiniteScroll);
-            window.addEventListener('touchend', app.infiniteScroll);
+            itemsList.addEventListener('scroll', app.infiniteScroll);
         },
         // Infinite scroll
         infiniteScroll: function () {
             const app = this;
 
             if (app.params.start <= app.source.total &&
-                window && (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight)) {
+                itemsList.scrollTop + itemsList.clientHeight >= itemsList.scrollHeight) {
                 app.loadMore();
             }
 
             // Back to top (in pixels)
-            if (document.documentElement.scrollTop > 20) {
+            if (itemsList.scrollTop > 20) {
                 app.bottomOfPage = true;
             }
             else {
@@ -481,8 +480,7 @@ new Vue({
         },
         // Back to top button action
         back2Top: function () {
-            document.body.scrollTop = 0; // For Safari
-            document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+            itemsList.scrollTop = 0;
         },
         // Toggle item description
         expand: function (e) {

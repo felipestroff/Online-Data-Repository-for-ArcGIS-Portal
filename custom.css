@@ -1,5 +1,6 @@
 html, body {
     background-color: #F9F8EE;
+    overflow: hidden;
 }
 
 .custom-loading {
@@ -45,6 +46,11 @@ html, body {
     color: #444444;
 }
 
+.custom-list-group {
+    height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
 .custom-list-group-item {
     background: transparent;
 }
@@ -78,4 +84,12 @@ html, body {
 
 .page-navigation:hover {
     color: #5F8B3F;
+}
+
+/* Media queries */
+/* Medium devices (tablets, 768px and up) */
+@media (max-width: 768px) {
+    .custom-list-group {
+        height: calc(100vh - 300px);
+    }
 }
