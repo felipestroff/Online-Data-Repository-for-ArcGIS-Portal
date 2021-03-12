@@ -314,6 +314,10 @@ new Vue({
                     app.layer2KML(response, title);
                 }
             }
+            else {
+                app.loading = false;
+                app.message = 'Falha no download.';
+            }
         },
         // Async query item layer data
         queryLayer: function (layerUrl) {
@@ -321,14 +325,11 @@ new Vue({
 
             return new Promise(function(resolve, reject) {
                 require(['esri/tasks/QueryTask', 'esri/tasks/support/Query'], function(QueryTask, Query) {
-                    // Set sublayer/index of layer
-                    let index = layerUrl.slice(-1); // 0;
-                    if (index !== '0') {
-                        index = '/0';
-                    }
+                    const layerIndex = parseInt(layerUrl.split('/').pop());
 
                     const queryTask = new QueryTask({
-                        url: layerUrl + index
+                        // Check if layer index is not a number
+                        url: isNaN(layerIndex) ? layerUrl + '/0' : layerUrl
                     });
                 
                     const query = new Query();
@@ -408,8 +409,8 @@ new Vue({
         layer2Shapefile: async function (data, layerName) {
             const app = this,
             featureCollection = await app.convertFeatures2Json(data.features);
-            
-            GeoShape.transformAndDownload(featureCollection, layerName + '.zip');
+
+            GeoShape.transformAndDownload(featureCollection, layerName);
 
             app.loading = false;
         },
@@ -421,7 +422,7 @@ new Vue({
                     crs: {
                         type: 'name',
                         properties: {
-                            name: 'EPSG:4326',
+                            name: 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]]',
                         }
                     }
                 };
