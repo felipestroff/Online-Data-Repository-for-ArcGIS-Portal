@@ -397,6 +397,7 @@ new Vue({
 
             saveAs(blob, fileName + '.csv');
 
+            app.message = 'Listando dados e informações disponíveis:';
             app.loading = false;
         },
         // Convert layer features to JSON then convert to GeoJSON file
@@ -409,6 +410,7 @@ new Vue({
 
             saveAs(blob, fileName + '.geojson');
 
+            app.message = 'Listando dados e informações disponíveis:';
             app.loading = false;
         },
         // Convert layer features to JSON then convert to kml file
@@ -427,6 +429,7 @@ new Vue({
 
             saveAs(blob, fileName + '.kml');
 
+            app.message = 'Listando dados e informações disponíveis:';
             app.loading = false;
         },
         // Convert layer features to JSON then convert to Shapefile zip
@@ -447,6 +450,7 @@ new Vue({
             shpwrite.zip(featureCollection, options).then(function(content) {
                 saveAs(content, fileName + '.zip');
 
+                app.message = 'Listando dados e informações disponíveis:';
                 app.loading = false;
             });
         },
