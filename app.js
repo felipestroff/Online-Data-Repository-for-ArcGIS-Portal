@@ -336,7 +336,6 @@ new Vue({
                 
                     const query = new Query();
                     query.returnGeometry = true;
-                    //query.returnCentroid = true; // ! Download bug
                     query.outFields = ['*'];
                     query.where = '1=1';
                     query.outSpatialReference = {'wkid' : 4326};
@@ -367,9 +366,20 @@ new Vue({
                 // New row
                 sheetContent += '\r\n';
 
-                const geom = feature.geometry,
-                latitude = geom.type === 'point' ? geom.latitude : geom.extent.center.latitude,
+                const geom = feature.geometry;
+
+                let latitude, longitude;
+
+                // If geometry has extent
+                if (geom.extent) {
+                    latitude = geom.type === 'point' ? geom.latitude : geom.extent.center.latitude,
                     longitude = geom.type === 'point' ? geom.longitude : geom.extent.center.longitude;
+                }
+                // If not, append 0 to coordinates
+                else {
+                    latitude = 0;
+                    longitude = 0;
+                }
 
                 // Append coordinates attrs in cols
                 sheetContent += latitude + ',';
