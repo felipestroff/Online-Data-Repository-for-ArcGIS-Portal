@@ -157,6 +157,8 @@ new Vue({
             app.searchInput = '';
             app.searchTag = '';
 
+            sortingBy.innerHTML = '';
+
             // Query items
             await app.portal.queryItems(app.params).then(app.createGallery);
 
