@@ -384,7 +384,9 @@ new Vue({
             fileName = layerName.replace(/ /g, '_')
                 .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-            app.createFileLink(blob, fileName, '.csv');
+            saveAs(blob, fileName + '.csv');
+
+            app.loading = false;
         },
         // Convert layer features to JSON then convert to GeoJSON file
         layer2GeoJSON: async function (data, layerName) {
@@ -394,7 +396,9 @@ new Vue({
             fileName = layerName.replace(/ /g, '_')
                 .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-            app.createFileLink(blob, fileName, '.geojson');
+            saveAs(blob, fileName + '.geojson');
+
+            app.loading = false;
         },
         // Convert layer features to JSON then convert to kml file
         layer2KML: async function (data, layerName) {
@@ -410,66 +414,40 @@ new Vue({
             }),
             blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
 
-            app.createFileLink(blob, fileName, '.kml');
+            saveAs(blob, fileName + '.kml');
 
+            app.loading = false;
         },
         // Convert layer features to JSON then convert to Shapefile zip
         layer2Shapefile: async function (data, layerName) {
             const app = this,
-            featureCollection = await app.convertFeatures2Json(data.features, true),
+            featureCollection = await app.convertFeatures2Json(data.features),
             fileName = layerName.replace(/ /g, '_')
                 .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-            GeoShape.transformAndDownload(featureCollection, fileName);
+            const options = {
+                types: {
+                    point: fileName,
+                    polygon: fileName,
+                    line: fileName
+                }
+            }
 
-            app.loading = false;
+            shpwrite.zip(featureCollection, options).then(function(content) {
+                saveAs(content, fileName + '.zip');
+
+                app.loading = false;
+            });
         },
-        convertFeatures2Json: function (features, crs) {
+        convertFeatures2Json: function (features) {
             return new Promise(function(resolve, reject) {
                 const featureCollection = {
                     type: 'FeatureCollection',
                     features: features.map(f => Terraformer.ArcGIS.parse(f))
                 };
 
-                if (crs) {
-                    featureCollection.crs = {
-                        type: 'name',
-                        properties: {
-                            name: 'GEOGCS["GCS_SIRGAS_2000",DATUM["D_SIRGAS_2000",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433],AUTHORITY["EPSG",4674]]',
-                        }
-                    };
-                }
-
                 resolve(featureCollection);
             });
-        },
-        // Create link for download converted layer data
-        createFileLink: function (blob, filename, ext) {
-            let app = this;
-
-            // IE 10+
-            if (window.navigator && window.navigator.msSaveBlob) {
-                window.navigator.msSaveBlob(blob, filename);
-            }
-            // Browsers that support HTML5 download attribute
-            else {
-                var a = document.createElement("a");
-                a.style = 'display: none';
-                document.body.appendChild(a);
-                //Create a DOMString representing the blob
-                //and point the link element towards it
-                var url = window.URL.createObjectURL(blob);
-                a.href = url;
-                a.download = filename + ext;
-                a.target = '_self';
-                //programatically click the link to trigger the download
-                a.click();
-                //release the reference to the file by revoking the Object URL
-                window.URL.revokeObjectURL(url);
-
-                app.loading = false;
-                app.message = 'Listando dados e informações disponíveis:';
-            }
         },
         // Scroll action
         scroll: function () {
