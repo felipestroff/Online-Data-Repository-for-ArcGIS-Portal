@@ -14,19 +14,25 @@ new Vue({
         },
         source: null,
         searchInput: '',
+        searchGroup: {
+            id: '',
+            name: ''
+        },
         searchTag: '',
         items: [],
         tags: [],
         downloadList: [],
+        groupsList: [],
         sortList: [],
         bottomOfPage: false,
         loading: false,
         options: {
+            enableBackTop: false,
+            enableDescription: false,
+            enableGroups: false,
             enableSearch: false,
             enableTags: false,
-            enableThumbnails: false,
-            enableDescription: false,
-            enableBackTop: false
+            enableThumbnails: false
         }
     },
     created() {
@@ -48,9 +54,21 @@ new Vue({
             // Append message text
             // If has results
             if (data.length) {
+                // Search input, tags and groups
+                if (app.searchInput && app.searchTag && app.searchGroup.id) {
+                    app.message = `Resultado da pesquisa por "${app.searchInput}" + "${app.searchTag}" + "${app.searchGroup.name}":`;
+                }
                 // Search input and tags
-                if (app.searchInput && app.searchTag) {
+                else if (app.searchInput && app.searchTag) {
                     app.message = `Resultado da pesquisa por "${app.searchInput}" + "${app.searchTag}":`;
+                }
+                // Search input and groups
+                else if (app.searchInput && app.searchGroup.id) {
+                    app.message = `Resultado da pesquisa por "${app.searchInput}" + "${app.searchGroup.name}":`;
+                }
+                // Search tags and groups
+                else if (app.searchTag && app.searchGroup.id) {
+                    app.message = `Resultado da pesquisa por "${app.searchTag}" + "${app.searchGroup.name}":`;
                 }
                 // Search input only
                 else if (app.searchInput) {
@@ -59,6 +77,10 @@ new Vue({
                 // Tags only
                 else if (app.searchTag) {
                     app.message = `Resultado da pesquisa por "${app.searchTag}":`;
+                }
+                // Groups only
+                else if (app.searchGroup.id) {
+                    app.message = `Resultado da pesquisa por "${app.searchGroup.name}":`;
                 }
                 // None of these
                 else {
@@ -87,13 +109,6 @@ new Vue({
                 console.log('Config json', json);
 
                 app.portal.url = json.portalUrl;
-            
-                // Sorting
-                json.sorts.forEach(function (item) {
-                    if (item.enabled) {
-                        app.sortList.push(item);
-                    }
-                });
 
                 // Download buttons
                 json.downloads.forEach(function (item) {
@@ -102,12 +117,27 @@ new Vue({
                     }
                 });
 
+                // Groups
+                json.groups.forEach(function (item) {
+                    if (item.enabled) {
+                        app.groupsList.push(item);
+                    }
+                });
+
+                // Sorting
+                json.sorts.forEach(function (item) {
+                    if (item.enabled) {
+                        app.sortList.push(item);
+                    }
+                });
+
                 // Options
+                app.options.enableBackTop = json.options.enableBackTop;
+                app.options.enableDescription = json.options.enableDescription;
+                app.options.enableGroups = json.options.enableGroups;
                 app.options.enableSearch = json.options.enableSearch;
                 app.options.enableTags = json.options.enableTags;
                 app.options.enableThumbnails = json.options.enableThumbnails;
-                app.options.enableDescription = json.options.enableDescription;
-                app.options.enableBackTop = json.options.enableBackTop;
 
                 // Start app
                 app.start();
@@ -155,6 +185,8 @@ new Vue({
             app.items = [];
             app.tags = [];
             app.searchInput = '';
+            app.searchGroup.id = '';
+            app.searchByGroup.name = '';
             app.searchTag = '';
 
             sortingBy.innerHTML = '';
@@ -218,15 +250,8 @@ new Vue({
             app.params.num = 10;
             app.items = [];
 
-            if (app.searchInput || app.searchTag) {
-                app.params.query = `${app.searchInput} ${app.searchTag ? `tags:(${app.searchTag})` : ''} orgid:${app.portal.id} ((type:"Feature Service"))`;
-                app.message = `Procurando por "${app.searchInput}"...`;
-            }
-            else {
-                app.params.query = `${app.searchTag ? `tags:(${app.searchTag})` : ''} orgid:${app.portal.id} ((type:"Feature Service"))`;
-                app.message = 'Carregando...';
-            }
-
+            app.params.query = `${app.searchInput} ${app.searchTag ? `tags:(${app.searchTag})` : ''} ${app.searchGroup.id ? `group:${app.searchGroup.id}` : ''} orgid:${app.portal.id} ((type:"Feature Service"))`;
+            app.message = 'Carregando...';
             app.portal.queryItems(app.params).then(app.createGallery);
         },
         // Search items by tags on select or input
@@ -239,17 +264,24 @@ new Vue({
             app.params.num = 10;
             app.items = [];
 
-            const tag = e.target.value;
+            app.params.query = `${app.searchInput} ${app.searchTag ? `tags:(${app.searchTag})` : ''} ${app.searchGroup.id ? `group:${app.searchGroup.id}` : ''} orgid:${app.portal.id} ((type:"Feature Service"))`;
+            app.message = 'Carregando...';
+            app.portal.queryItems(app.params).then(app.createGallery);
+        },
+        // Search items by group on click
+        searchByGroup: function (id, name) {
+            let app = this;
+            app.loading = true;
+            app.params.start = 1;
+            app.params.num = 10;
+            app.items = [];
 
-            if (tag) {
-                app.params.query = `${app.searchInput} tags:(${tag}) orgid:${app.portal.id} ((type:"Feature Service"))`;
-                app.message = `Procurando por "${tag}"...`;
-            }
-            else {
-                app.params.query = `${app.searchInput} orgid:${app.portal.id} ((type:"Feature Service"))`;
-                app.message = 'Carregando...';
-            }
+            // Set new group value
+            app.searchGroup.id = id;
+            app.searchGroup.name = name;
 
+            app.params.query = `${app.searchInput} ${app.searchTag ? `tags:(${app.searchTag})` : ''} ${app.searchGroup.id ? `group:${app.searchGroup.id}` : ''} orgid:${app.portal.id} ((type:"Feature Service"))`;
+            app.message = 'Carregando...';
             app.portal.queryItems(app.params).then(app.createGallery);
         },
         // Sort items by attr and order

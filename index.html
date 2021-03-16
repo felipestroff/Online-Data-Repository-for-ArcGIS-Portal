@@ -62,17 +62,32 @@
             </div>
 
             <div class="row">
-                <div v-if="options.enableTags" class="col-md-3 mb-4">
-                    <div v-if="tags">
+                <!-- Aside -->
+                <div v-if="options.enableTags || options.enableGroups" class="col-md-3 mb-4">
+                    <!-- Groups/themes -->
+                    <div v-if="options.enableGroups && groupsList">
+                        <label class="custom-action-title"><strong>Temáticas</strong></label>
+                        <div class="list-group list-group-flush">
+                            <a v-for="(group, index) in groupsList" :key="index" v-on:click="searchByGroup(group.id, group.name)"
+                                v-bind:class="{ 'active': searchGroup.id === group.id }" href="#"
+                                class="custom-list-group-item list-group-item list-group-item-action">
+                                {{ group.name }}
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Tags -->
+                    <div v-if="options.enableTags && tags" class="mt-4">
                         <label for="tags" class="custom-action-title"><strong>Tags</strong></label>
-                        <input v-model="searchTag" v-on:input="searchByTag" id="tags" list="tagsList" type="search" class="form-control mt-4" placeholder="Selecione...">
+                        <input v-model="searchTag" v-on:input="searchByTag" id="tags" list="tagsList" type="search" class="form-control mt-2" placeholder="Selecione...">
                         <datalist id="tagsList">
                             <option v-for="(tag, index) in tags" :key="index">{{ tag }}</option>
                         </datalist>
                     </div>
                 </div>
+
+                <!-- Portal items/results  -->
                 <div class="col-md-9">
-                    <!-- Search container -->
                     <div v-if="items">
                         <div>
                             <span class="custom-message">{{ message }}</span>

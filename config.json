@@ -42,6 +42,23 @@
             "enabled": true
         }
     ],
+    "groups": [
+        {
+            "id": "1128009587094e448e3f5a3f31bcc620",
+            "name": "Ambiental",
+            "enabled": true
+        },
+        {
+            "id": "1d53c16aaf454f02888dd51db0dc6393",
+            "name": "Socioeconômico",
+            "enabled": true
+        },
+        {
+            "id": "5005aa2efa9b4bcb9aae3ee850f99f3e",
+            "name": "Territorial",
+            "enabled": true
+        }
+    ],
     "sorts": [
         {
             "value": "asc",
@@ -117,10 +134,11 @@
         }
     ],
     "options": {
+        "enableBackTop": true,
+        "enableDescription": true,
+        "enableGroups": true,
         "enableSearch": true,
         "enableTags": true,
-        "enableThumbnails": true,
-        "enableDescription": true,
-        "enableBackTop": true
+        "enableThumbnails": true
     }
 }
