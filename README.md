@@ -38,5 +38,5 @@ https://codexremote.com.br/sisdia/repositorio-de-dados
 
 # Todo
 
-- Support to search (on input) in mobile devices
-- Support to infinite scroll in mobile devices
+- Add support to search (on input) in mobile devices
+- Add support to infinite scroll in mobile devices
