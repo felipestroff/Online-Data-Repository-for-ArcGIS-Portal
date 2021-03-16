@@ -455,7 +455,7 @@ new Vue({
             // Uses custom lib: tokml.js
             kml = tokml(featureCollection, {
                 documentName: layerName,
-                documentDescription: 'Repositório de Dados | SISDIA'
+                documentDescription: 'Felipe Stroff - Online Data Repository | Portal for ArcGIS'
             }),
             blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
 

@@ -1,6 +1,6 @@
-# Repositório de Dados | SISDIA
+# Online Data Repository | Portal for ArcGIS
 
-https://codexremote.com.br/sisdia/repositorio-de-dados
+
 
 # Core
 
@@ -31,7 +31,7 @@ https://codexremote.com.br/sisdia/repositorio-de-dados
 
 1. Install a web server and start apache service
 2. Put app folder into web server folder `www` or `htdocs`
-3. change current config in `config.json` file
+3. **IMPORTANT** Change current config in `config.json` file
 3. Goto `http://localhost/app-folder-name` in browser
 
 - - - - -

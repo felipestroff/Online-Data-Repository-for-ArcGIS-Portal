@@ -1,5 +1,5 @@
 {
-    "portalUrl": "https://sisdia.df.gov.br/portal",
+    "portalUrl": "OUR_PORTAL_URL",
     "downloads": [
         {
             "name": "SHP",
@@ -44,18 +44,8 @@
     ],
     "groups": [
         {
-            "id": "1128009587094e448e3f5a3f31bcc620",
-            "name": "Ambiental",
-            "enabled": true
-        },
-        {
-            "id": "1d53c16aaf454f02888dd51db0dc6393",
-            "name": "Socioeconômico",
-            "enabled": true
-        },
-        {
-            "id": "5005aa2efa9b4bcb9aae3ee850f99f3e",
-            "name": "Territorial",
+            "id": "GROUP_ID",
+            "name": "GROUP_NAME",
             "enabled": true
         }
     ],
@@ -136,7 +126,7 @@
     "options": {
         "enableBackTop": true,
         "enableDescription": true,
-        "enableGroups": true,
+        "enableGroups": false,
         "enableSearch": true,
         "enableTags": true,
         "enableThumbnails": true
